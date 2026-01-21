@@ -19,7 +19,7 @@
 
 
 global:
-  ingressRouter: "helmchangelog.ef.com"
+  ingressRouter: "devops77.ef.com"
   ingressCertName: "ef-ingress-tls-secret"
   ingressClassName: "nginx"
   efCxReleaseName: "ef-cx"
@@ -75,7 +75,7 @@ unified-agent:
    replicaCount: 1
    image:
       repository: cim/unified-agent
-      tag: "5.0.4"
+      tag: "5.0.5"
    efConnectionVars: true
    efEnvironmentVars: true
    containerPorts:
@@ -102,91 +102,7 @@ unified-agent:
         value: "https://{{ .Values.global.ingressRouter  }}/team-announcement"
       - name: getQueuesDelay
         value: "15"
-      - name: bargeInType
-        value: "yaml"
-      - name: ssoBackendUrl
-        value: "https://192.168.1.104:1123/"
-      - name: isGadget
-        value: "true"
-      - name: silentMonitorType
-        value: "MENTOR"
-      - name: ronaStateOnCisco
-        value: "Call Not Answered"
-      - name: ENV
-        value: "prod"
-      - name: FILE_SERVER_URL
-        value: "https://{{ .Values.global.ingressRouter  }}/file-engine"
-      - name: GAT_URL
-        value: "https://{{ .Values.global.ingressRouter  }}/agent-manager"
-      - name: GRAFANA_DASHBOARD_URL
-        value: "https://{{ .Values.global.ingressRouter  }}/grafana/d/0GEdiaunk/cim-supervisor-dashboard?orgId=1&from=1655784727657&to=1655806327657"
-      - name: SOCKET_URL
-        value: "https://{{ .Values.global.ingressRouter  }}/agent-manager"
-      - name: boshUrl
-        value: "https://finesse12.ucce.ipcc:7443/http-bind/"
-      - name: subBoshUrl
-        value: "https://finesse.ucce.ipcc:7443/http-bind/"
-      - name: callVariable
-        value: "callVariable1"
-      - name: conferenceType
-        value: "CONFERENCE"
-      - name: consultTransferTypeCCE
-        value: "CONSULT_OFFERED"
-      - name: consultTransferTypeCCX
-        value: "TRANSFER"
-      - name: consultType
-        value: "CONSULT"
-      - name: directTransferTypeCCE
-        value: "TRANSFER"
-      - name: directTransferTypeCCX
-        value: "OFFERED"
-      - name: directType
-        value: "OTHER_IN"
-      - name: domain
-        value: "finesse12.ucce.ipcc"
-      - name: subDomain
-        value: "finesse12.ucce.ipcc"
-      - name: ctiParam
-        value: "U2FsdGVkX18ZqvnWRz7v3QJbCrEEQh7rNIPXqx8N39M="
-      - name: ctiParam2
-        value: "U2FsdGVkX18F8f3/3XmssO1QK8vCrmVje1z4HqCVrB0="
-      - name: finesseFlavor
-        value: "UCCX"
-      - name: inboundTypeCCE
-        value: "PREROUTE_ACD_IN"
-      - name: inboundTypeCCX
-        value: "ACD_IN"
-      - name: outboundCampaignType
-        value: "OUTBOUND"
-      - name: outboundPreviewCampaignTypeCCE
-        value: "OUTBOUND_PREVIEW"
-      - name: outboundPreviewCampaignTypeCCX
-        value: "OUTBOUND_DIRECT_PREVIEW"
-      - name: outboundType
-        value: "OUT"
-      - name: outboundType2
-        value: "AGENT_INSIDE"
-      - name: isCiscoEnabled
-        value: "false"
-      - name: isCxVoiceEnabled
-        value: "true"
-      - name: CISCO_CC_MRD
-        value: "20316843be924c8ab4f57a7a"
-      - name: CX_VOICE_MRD
-        value: "62f9e360ea5311eda05b0242"
-      - name: SIP_SOCKET_URL
-        value: "wss://192.168.1.17:7443"
-      - name: SIP_URI
-        value: "192.168.1.17"
-      - name: EXT_STATIC
-        value: "U2FsdGVkX1+YVwobqsio9pRiIEcB9FzpTYbnmzSDEm0="
-      - name: ENABLE_SIP_LOGS
-        value: "false"
-      - name: STATIC_QUEUE_TRANSFER_DN
-        value: "99887766"
-      - name: AUTO_CALL_ANSWER_TIMER
-        value: "2"
-      - name: DASHBOARD_REFRESH_TIME
+      - name: 
         value: "10000"
       - name: isCrmEventsEnabled
         value: "false"
@@ -247,9 +163,9 @@ unified-agent:
           name: ef-canned-messages-cm
    extraVolumeMounts:
       - name: ef-app-translation
-        mountPath: /usr/share/nginx/html/assets/i18n/
+        mountPath: /usr/share/nginx/html/assets/i18n/77777
       - name: ef-crm-service
-        mountPath: /usr/share/nginx/html/assets/cti/crm/
+        mountPath: /usr/share/nginx/html/assets/cti/crm/hshshhs
       - name: ef-canned-messages
         mountPath: /usr/share/nginx/html/assets/canned-messages/
 
@@ -258,7 +174,7 @@ grafana:
   image:
     registry: gitimages.expertflow.com
     repository: general/grafana
-    tag: 12.9.2-debian-25-r0
+    tag: 12.9.2-debian-25-r0-tagsggsg
     pullPolicy: IfNotPresent
   dashboardsProvider:
     enabled: true
@@ -272,7 +188,7 @@ grafana:
       fileName: '{{ .Values.global.efGrafanaAgentDashboardFilename }}'
     - configMapName: '{{ .Values.global.efGrafanaAgentTeamsDashboardConfigMap }}'
       folderName: default
-      fileName: '{{ .Values.global.efGrafanaAgentTeamsDashboardFilename }}'
+      fileName: 'have a nice day'
     - configMapName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardConfigMap }}'
       folderName: default
       fileName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardFilename }}'
