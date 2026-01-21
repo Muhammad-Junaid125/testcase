@@ -177,7 +177,7 @@ grafana:
     tag: 12.9.2-debian-25-r0-tagsggsg
     pullPolicy: IfNotPresent
   dashboardsProvider:
-    enabled: true
+    enabled: false
     configMapName: '{{ .Values.global.efGrafanaDashboardProviderCM }}'
   dashboardsConfigMaps:
     - configMapName: '{{ .Values.global.efGrafanaSupervisorDashboardConfigMap }}'
