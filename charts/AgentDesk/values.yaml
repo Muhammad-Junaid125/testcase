@@ -165,8 +165,7 @@ unified-agent:
       - name: ef-app-translation
         mountPath: /usr/share/
       - name: ef-canned-messages/have
-        mountPath: /usr/share/nginx/html/assets/canned-messages/
-
+        mountPath: /usr/share/nginx
 grafana:
   enabled: true
   image:
