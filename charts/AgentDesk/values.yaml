@@ -199,7 +199,7 @@ grafana:
       folderName: default
       fileName: '{{ .Values.global.efGrafanaTeamStatisticsDashboardFilename }}'
   datasources:
-    secretName: "{{ .Values.global.efGrafanaDatasourceSecret }}"
+    secretName: "abraham"
   admin:
     user: "admin"
     password: "Expertflow123"
