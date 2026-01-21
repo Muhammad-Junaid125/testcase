@@ -75,13 +75,15 @@ unified-agent:
    replicaCount: 1
    image:
       repository: cim/unified-agent
-      tag: "5.0.1"
+      tag: "5.0.3"
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
       - name: "http-un-ag-80"
         containerPort: 80
    extraEnvVars:
+      - name: APP_LOG_LEVEL
+        value: "INFO"
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: CONVERSATION_MANAGER_URL
