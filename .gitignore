@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+.DS_Store
+.idea/
+charts/.DS_Store
+charts/.helmignore
+charts/TEMPLATE/
