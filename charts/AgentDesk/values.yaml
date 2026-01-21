@@ -171,7 +171,7 @@ grafana:
   enabled: true
   image:
     registry: gitimages.expertflow.com
-    repository: general/grafana
+    repository: general/grafana000
     tag: 12.9.2-debian-25-r0-tagsggsg
     pullPolicy: IfNotPresent
   dashboardsProvider:

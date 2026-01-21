@@ -53,7 +53,7 @@ jobs:
       - name: Generate CHANGELOG.md
         uses: requarks/changelog-action@v1
         with:
-          tag: agent-desk-5.0.5
+          tag: agent-desk-5.0.4
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
           includeInvalidCommits: true
