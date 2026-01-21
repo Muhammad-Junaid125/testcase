@@ -163,9 +163,7 @@ unified-agent:
           name: ef-canned-messages-cm
    extraVolumeMounts:
       - name: ef-app-translation
-        mountPath: /usr/share/nginx/html/assets/i18n/77777
-      - name: ef-crm-service
-        mountPath: /usr/share/nginx/html/assets/cti/crm/hshshhs
+        mountPath: /usr/share/
       - name: ef-canned-messages
         mountPath: /usr/share/nginx/html/assets/canned-messages/
 

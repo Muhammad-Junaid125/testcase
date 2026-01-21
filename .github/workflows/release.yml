@@ -54,7 +54,6 @@ jobs:
         uses: requarks/changelog-action@v1
         with:
           fromTag: agent-desk-5.0.4
-          toTag: agent-desk-5.0.5
           #tag: agent-desk-5.0.5
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
