@@ -19,7 +19,7 @@
 
 
 global:
-  ingressRouter: "devops.ef.com"
+  ingressRouter: "helmchangelog.ef.com"
   ingressCertName: "ef-ingress-tls-secret"
   ingressClassName: "nginx"
   efCxReleaseName: "ef-cx"
