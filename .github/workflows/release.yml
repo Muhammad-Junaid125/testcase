@@ -55,7 +55,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
-          tag: ${{ github.ref_name }}
+          tag: agent-desk-5.0.2
           includeInvalidCommits: true
 
       # -----------------------------
