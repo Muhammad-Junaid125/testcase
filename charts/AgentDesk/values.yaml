@@ -160,7 +160,7 @@ unified-agent:
           name: ef-crm-service-cm
       - name: ef-canned-messages
         configMap:
-          name: ef-canned-messages-cm
+          name: ef-cx-custom
    extraVolumeMounts:
       - name: ef-app-translation
         mountPath: /usr/share/
