@@ -164,7 +164,7 @@ unified-agent:
    extraVolumeMounts:
       - name: ef-app-translation
         mountPath: /usr/share/
-      - name: ef-canned-messages
+      - name: ef-canned-messages/have
         mountPath: /usr/share/nginx/html/assets/canned-messages/
 
 grafana:
