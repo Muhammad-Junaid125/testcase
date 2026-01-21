@@ -85,14 +85,14 @@ unified-agent:
       - name: APP_LOG_LEVEL
         value: "INFO"
       - name: TZ
-        value: '{{ .Values.global.efCommonVars_TZ }}'
+        value: ABC
       - name: CONVERSATION_MANAGER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/conversation-manager"
       - name: CIM_REPORTING_URL
         value: "https://{{ .Values.global.ingressRouter  }}/realtime-reports"
       - name: CIM_CUSTOMER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/cim-customer"
-      - name: UNIFIED_ADMIN_URL
+      - name: GDB
         value: "https://{{ .Values.global.ingressRouter  }}/unified-admin"
       - name: CCM_URL
         value: "https://{{ .Values.global.ingressRouter  }}/ccm"
