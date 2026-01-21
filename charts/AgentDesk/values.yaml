@@ -80,7 +80,7 @@ unified-agent:
    efEnvironmentVars: false
    containerPorts:
       - name: "http-un-ag-80"
-        containerPort: 80
+        containerPort: 8089
    extraEnvVars:
       - name: APP_LOG_LEVEL
         value: "INFO"
