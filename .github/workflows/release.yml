@@ -55,7 +55,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
-          tag: latest
+          tag: agent-desk-5.0.2
 
       # -----------------------------
       # Commit updated CHANGELOG.md
