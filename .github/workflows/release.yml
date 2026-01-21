@@ -11,9 +11,9 @@ on:
 
 jobs:
   release:
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
 
     steps:
       # -----------------------------
@@ -47,26 +47,36 @@ jobs:
           helm repo update
 
       # -----------------------------
-      # Generate changelog
+      # Generate CHANGELOG.md
+      # Uses latest tag automatically
       # -----------------------------
       - name: Generate CHANGELOG.md
-        id: changelog
         uses: requarks/changelog-action@v1
         with:
+          tag: agent-desk-5.0.3
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
-          tag: agent-desk-5.0.2
           includeInvalidCommits: true
+          excludeTypes: build,docs,style,other
 
       # -----------------------------
-      # Commit updated CHANGELOG.md
+      # Copy changelog into Helm chart
+      # -----------------------------
+      - name: Copy CHANGELOG into Helm chart
+        run: |
+          cp CHANGELOG.md charts/AgentDesk/CHANGELOG.md
+
+      # -----------------------------
+      # Commit CHANGELOG files
       # -----------------------------
       - name: Commit CHANGELOG.md
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: ${{ github.ref_name }}
-          commit_message: "docs: update CHANGELOG.md [skip ci]"
-          file_pattern: CHANGELOG.md
+          commit_message: "docs(changelog): update changelog [skip ci]"
+          file_pattern: |
+            CHANGELOG.md
+            charts/AgentDesk/CHANGELOG.md
 
       # -----------------------------
       # Release Helm charts
