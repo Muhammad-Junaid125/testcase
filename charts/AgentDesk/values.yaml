@@ -19,7 +19,7 @@
 
 
 global:
-  ingressRouter: "devops77.ef.com"
+  ingressRouter: "devops.ef.com"
   ingressCertName: "ef-ingress-tls-secret"
   ingressClassName: "nginx"
   efCxReleaseName: "ef-cx"
@@ -75,34 +75,116 @@ unified-agent:
    replicaCount: 1
    image:
       repository: cim/unified-agent
-      tag: "5.0.7"
+      tag: "5.0"
    efConnectionVars: true
-   efEnvironmentVars: true
+   efEnvironmentVars: false
    containerPorts:
-      - name: "http-un-ag-8089"
-        containerPort: 8089
+      - name: "http-un-ag-80"
+        containerPort: 80
    extraEnvVars:
-      - name: APP_LOG_LEVEL
-        value: "INFO"
       - name: TZ
-        value: ABC
+        value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: CONVERSATION_MANAGER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/conversation-manager"
       - name: CIM_REPORTING_URL
-        value: "https://{{ .Values.global.IngressSQL  }}/realtime-reports"
+        value: "https://{{ .Values.global.ingressRouter  }}/realtime-reports"
       - name: CIM_CUSTOMER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/cim-customer"
-      - name: GDB
+      - name: UNIFIED_ADMIN_URL
         value: "https://{{ .Values.global.ingressRouter  }}/unified-admin"
       - name: CCM_URL
-        value: ccm12366666666666666ahahgigsigxs
+        value: "https://{{ .Values.global.ingressRouter  }}/ccm"
       - name: ROUTING_ENGINE_URL
         value: "https://{{ .Values.global.ingressRouter  }}/routing-engine"
       - name: TEAM_ANNOUNCEMENT_URL
         value: "https://{{ .Values.global.ingressRouter  }}/team-announcement"
       - name: getQueuesDelay
         value: "15"
-      - name: 
+      - name: bargeInType
+        value: "BARGE_IN_CONSULT"
+      - name: ssoBackendUrl
+        value: "https://192.168.1.104:1123/"
+      - name: isGadget
+        value: "true"
+      - name: silentMonitorType
+        value: "SUPERVISOR_MONITOR"
+      - name: ronaStateOnCisco
+        value: "Call Not Answered"
+      - name: ENV
+        value: "prod"
+      - name: FILE_SERVER_URL
+        value: "https://{{ .Values.global.ingressRouter  }}/file-engine"
+      - name: GAT_URL
+        value: "https://{{ .Values.global.ingressRouter  }}/agent-manager"
+      - name: GRAFANA_DASHBOARD_URL
+        value: "https://{{ .Values.global.ingressRouter  }}/grafana/d/0GEdiaunk/cim-supervisor-dashboard?orgId=1&from=1655784727657&to=1655806327657"
+      - name: SOCKET_URL
+        value: "https://{{ .Values.global.ingressRouter  }}/agent-manager"
+      - name: boshUrl
+        value: "https://finesse12.ucce.ipcc:7443/http-bind/"
+      - name: subBoshUrl
+        value: "https://finesse.ucce.ipcc:7443/http-bind/"
+      - name: callVariable
+        value: "callVariable1"
+      - name: conferenceType
+        value: "CONFERENCE"
+      - name: consultTransferTypeCCE
+        value: "CONSULT_OFFERED"
+      - name: consultTransferTypeCCX
+        value: "TRANSFER"
+      - name: consultType
+        value: "CONSULT"
+      - name: directTransferTypeCCE
+        value: "TRANSFER"
+      - name: directTransferTypeCCX
+        value: "OFFERED"
+      - name: directType
+        value: "OTHER_IN"
+      - name: domain
+        value: "finesse12.ucce.ipcc"
+      - name: subDomain
+        value: "finesse12.ucce.ipcc"
+      - name: ctiParam
+        value: "U2FsdGVkX18ZqvnWRz7v3QJbCrEEQh7rNIPXqx8N39M="
+      - name: ctiParam2
+        value: "U2FsdGVkX18F8f3/3XmssO1QK8vCrmVje1z4HqCVrB0="
+      - name: finesseFlavor
+        value: "UCCX"
+      - name: inboundTypeCCE
+        value: "PREROUTE_ACD_IN"
+      - name: inboundTypeCCX
+        value: "ACD_IN"
+      - name: outboundCampaignType
+        value: "OUTBOUND"
+      - name: outboundPreviewCampaignTypeCCE
+        value: "OUTBOUND_PREVIEW"
+      - name: outboundPreviewCampaignTypeCCX
+        value: "OUTBOUND_DIRECT_PREVIEW"
+      - name: outboundType
+        value: "OUT"
+      - name: outboundType2
+        value: "AGENT_INSIDE"
+      - name: isCiscoEnabled
+        value: "false"
+      - name: isCxVoiceEnabled
+        value: "true"
+      - name: CISCO_CC_MRD
+        value: "20316843be924c8ab4f57a7a"
+      - name: CX_VOICE_MRD
+        value: "62f9e360ea5311eda05b0242"
+      - name: SIP_SOCKET_URL
+        value: "wss://192.168.1.17:7443"
+      - name: SIP_URI
+        value: "192.168.1.17"
+      - name: EXT_STATIC
+        value: "U2FsdGVkX1+YVwobqsio9pRiIEcB9FzpTYbnmzSDEm0="
+      - name: ENABLE_SIP_LOGS
+        value: "false"
+      - name: STATIC_QUEUE_TRANSFER_DN
+        value: "99887766"
+      - name: AUTO_CALL_ANSWER_TIMER
+        value: "2"
+      - name: DASHBOARD_REFRESH_TIME
         value: "10000"
       - name: isCrmEventsEnabled
         value: "false"
@@ -114,6 +196,18 @@ unified-agent:
         value: "false"
       - name: Enable_Voice_Events_For_CRM
         value: "false"
+      - name: IS_FINESSE_HA_ENABLED
+        value: "false"
+      - name: SECONDARY_FINESSE_URL
+        value: "https://finesse12-5.ucce.ipcc:8445"
+      - name: CISCO_SERVICE_IDENTIFIER
+        value: "0000"
+      - name: SIP_MONITORING_DN
+        value: "*44"
+      - name: SIP_EXTERNAL_DN
+        value: "99887765"
+      - name: AUTO_ANSWER_DELAY
+        value: "5000"
       - name: SOCKET_TIMEOUT
         value: "20000"
       - name: IS_WEBRTC_VIDEO_ENABLED
@@ -143,27 +237,30 @@ unified-agent:
       - name: ef-app-translation
         configMap:
            name: ef-app-translations-cm
-      - name: ef-cr
+      - name: ef-crm-service
         configMap:
           name: ef-crm-service-cm
       - name: ef-canned-messages
         configMap:
-          name: ef-cx-custom
+          name: ef-canned-messages-cm
    extraVolumeMounts:
       - name: ef-app-translation
-        mountPath: /usr/share/
-      - name: ef-canned-messages/have
-        mountPath: /usr/share/nginx
+        mountPath: /usr/share/nginx/html/assets/i18n/
+      - name: ef-crm-service
+        mountPath: /usr/share/nginx/html/assets/cti/crm/
+      - name: ef-canned-messages
+        mountPath: /usr/share/nginx/html/assets/canned-messages/
+
 grafana:
   enabled: true
   image:
     registry: gitimages.expertflow.com
-    repository: general/grafana000
-    tag: 12.9.2-debian-25-r0-07tagsggsg
+    repository: general/grafana
+    tag: 12.0.2-debian-12-r0
     pullPolicy: IfNotPresent
   dashboardsProvider:
-    enabled: false
-    configMapName: '{{ .Values.feREleasename.efGrafanaDashboardProviderCM }}'
+    enabled: true
+    configMapName: '{{ .Values.global.efGrafanaDashboardProviderCM }}'
   dashboardsConfigMaps:
     - configMapName: '{{ .Values.global.efGrafanaSupervisorDashboardConfigMap }}'
       folderName: default
@@ -173,7 +270,7 @@ grafana:
       fileName: '{{ .Values.global.efGrafanaAgentDashboardFilename }}'
     - configMapName: '{{ .Values.global.efGrafanaAgentTeamsDashboardConfigMap }}'
       folderName: default
-      fileName: 'have a nice day'
+      fileName: '{{ .Values.global.efGrafanaAgentTeamsDashboardFilename }}'
     - configMapName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardConfigMap }}'
       folderName: default
       fileName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardFilename }}'
@@ -184,46 +281,14 @@ grafana:
       folderName: default
       fileName: '{{ .Values.global.efGrafanaTeamStatisticsDashboardFilename }}'
   datasources:
-    secretName: "abraham"
+    secretName: "{{ .Values.global.efGrafanaDatasourceSecret }}"
   admin:
     user: "admin"
     password: "Expertflow123"
   config:
     useGrafanaIniFile: false
     grafanaIniConfigMap: "{{ .Values.global.efGrafanaIniCM }}"
-
-variables:
-    ACTIVEMQ_PRIORITY_BACKUP: "true"
-    ACTIVEMQ_RANDOMIZE: "false"
-    ACTIVEMQ_SECONDARY_URL: activemq.ef-external.svc
-    ACTIVEMQ_STOMP_PORT: "61615"
-    ACTIVEMQ_TIMEOUT: "5000"
-    ACTIVEMQ_TRANSPORT: ssl
-    ACTIVEMQ_TRUST_STORE_PASSWORD: "Expertflow123"
-    ACTIVEMQ_TRUST_STORE_PATH: "activemq_truststore.p12"
-    ACTIVEMQ_USERNAME: "admin"
-    ACTIVEMQ_CLIENT_CERT: /activemq/tls.crt
-    ACTIVEMQ_CLIENT_KEY: /activemq/tls.key
-    ACTIVEMQ_CA_CERT: /activemq/ca.crt
-    KEYCLOAK_BEARER_ONLY: "true"
-    KEYCLOAK_CLIENT_DB_ID: ef61df80-061c-4c29-b9ac-387e6bf67052
-    KEYCLOAK_CLIENT_ID: cim
-    KEYCLOAK_CONFIDENTIAL_PORT: "0"
-    KEYCLOAK_CREDENTIALS: '{"secret": "ef61df80-061c-4c29-b9ac-387e6bf67052"}'
-    KEYCLOAK_GRANT_TYPE: password
-    KEYCLOAK_GRANT_TYPE_PAT: client_credentials
-    KEYCLOAK_HOST: http://keycloak.ef-external.svc/auth/
-    KEYCLOAK_PASSWORD_ADMIN: admin
-    KEYCLOAK_POLICY_ENFORCER: '{}'
-    KEYCLOAK_REALM: expertflow
-    KEYCLOAK_RESOURCE: cim
-    KEYCLOAK_SCOPE_NAME: Any default scope
-    KEYCLOAK_SSL_REQUIRED: external
-    KEYCLOAK_USE_RESOURCE_ROLE_MAPPINGS: "true"
-    KEYCLOAK_USERNAME_ADMIN: admin
-    KEYCLOAK_VERIFY_TOKEN_AUDIENCE: "false"
-    MONGODB_AUTHENTICATION_DATABASE: admin
-grafana:
+  grafana:
     extraEnvVars:
       - name: GF_SERVER_HTTP_PORT
         value: "3000"
