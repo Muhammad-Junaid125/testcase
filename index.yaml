@@ -2,6 +2,33 @@ apiVersion: v1
 entries:
   agent-desk:
   - apiVersion: v2
+    appVersion: 5.0.7
+    created: "2026-01-22T06:12:29.539313109Z"
+    dependencies:
+    - condition: unified-agent.enabled
+      name: unified-agent
+      repository: file://charts/unified-agent
+      version: 1.0.0
+    - condition: grafana.enabled
+      name: grafana
+      repository: file://charts/grafana
+      version: 12.0.8
+    description: Expertflow CX Solution AgentDesk
+    digest: 705642a5cb88ebeab3e4880afe40795cd03ece1fad13a89d518b2848341b8437
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: agent-desk
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/agent-desk-5.0.7/agent-desk-5.0.7.tgz
+    version: 5.0.7
+  - apiVersion: v2
     appVersion: 5.0.6
     created: "2026-01-21T14:18:40.429423111Z"
     dependencies:
@@ -82,4 +109,4 @@ entries:
     urls:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/agent-desk-5.0.3/agent-desk-5.0.3.tgz
     version: 5.0.3
-generated: "2026-01-21T14:18:40.429437127Z"
+generated: "2026-01-22T06:12:29.539327536Z"
