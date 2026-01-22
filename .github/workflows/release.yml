@@ -53,14 +53,24 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # -----------------------------
-      # Generate CHANGELOG.md
-      # Uses latest tag automatically
+      # Get latest git tag
+      # -----------------------------
+      - name: Get latest tag
+        id: latest_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 || echo "")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      # -----------------------------
+      # Generate CHANGELOG.md (branch-safe)
       # -----------------------------
       - name: Generate CHANGELOG.md
         uses: requarks/changelog-action@v1
         with:
-          tag: agent-desk-5.0.7
+          fromTag: ${{ steps.latest_tag.outputs.tag }}
+          toRef: HEAD
           token: ${{ secrets.GITHUB_TOKEN }}
           writeToFile: true
           includeInvalidCommits: true
