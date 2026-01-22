@@ -7,11 +7,12 @@ on:
       - CX-4.10.4
       - CX-5.0-alpha
     paths:
-      - 'charts/**'
+      - "charts/**"
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
@@ -55,24 +56,24 @@ jobs:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # -----------------------------
-      # Get latest git tag
+      # Get latest git tag (safe)
       # -----------------------------
       - name: Get latest tag
         id: latest_tag
         run: |
-          TAG=$(git describe --tags --abbrev=0 || echo "")
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       # -----------------------------
-      # Generate CHANGELOG.md (branch-safe)
+      # Generate CHANGELOG.md
       # -----------------------------
       - name: Generate CHANGELOG.md
         uses: requarks/changelog-action@v1
         with:
-          fromTag: ${{ steps.latest_tag.outputs.tag }}
-          toRef: HEAD
           token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.latest_tag.outputs.tag }}
           writeToFile: true
+          changelogFilePath: CHANGELOG.md
           includeInvalidCommits: true
           excludeTypes: build,docs,style,other
 
@@ -86,7 +87,7 @@ jobs:
       # -----------------------------
       # Commit CHANGELOG files
       # -----------------------------
-      - name: Commit CHANGELOG.md
+      - name: Commit CHANGELOG files
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: ${{ github.ref_name }}
