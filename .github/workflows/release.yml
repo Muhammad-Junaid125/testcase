@@ -1,4 +1,4 @@
-name: Helm Release & Changelog
+name: Release Helm Charts with Changelog
 
 on:
   push:
@@ -9,83 +9,97 @@ on:
     paths:
       - 'charts/**'
 
-permissions:
-  contents: write
-
 jobs:
-  # =============================
-  # JOB 1: Release Helm Charts
-  # =============================
-  release-helm:
-    name: Release Helm Charts
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
+      # -----------------------------
+      # Checkout full git history
+      # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure Git (global)
+      # -----------------------------
+      # Configure Git identity
+      # -----------------------------
+      - name: Configure Git
         run: |
-          git config --global Muhammad-Junaid125 "github-actions[bot]"
-          git config --global junaid.arshad@expertflow.com "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      # -----------------------------
+      # Install Helm
+      # -----------------------------
       - name: Install Helm
         uses: azure/setup-helm@v3
 
+      # -----------------------------
+      # Add Helm repositories
+      # -----------------------------
       - name: Add Helm repos
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # =============================
-  # JOB 2: Generate Changelog
-  # =============================
-  changelog:
-    name: Generate & Commit Changelog
-    runs-on: ubuntu-latest
-    needs: release-helm   # 👈 runs after release job
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
+      # -----------------------------
+      # Get previous git tag
+      # -----------------------------
+      - name: Get previous tag
+        id: prev_tag
         run: |
-          git config --global Muhammad-Junaid125 "github-actions[bot]"
-          git config --global junaid.arshad@expertflow.com "github-actions[bot]@users.noreply.github.com"
-      - name: Get latest tag
-        id: latest_tag
-        run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
+      # -----------------------------
+      # Get new chart version (from Chart.yaml)
+      # -----------------------------
+      - name: Get chart version
+        id: chart_version
+        run: |
+          VERSION=$(yq '.version' charts/AgentDesk/Chart.yaml)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # -----------------------------
+      # Generate CHANGELOG.md
+      # -----------------------------
       - name: Generate CHANGELOG.md
         uses: requarks/changelog-action@v1
         with:
+          fromTag: ${{ steps.prev_tag.outputs.prev_tag }}
+          toTag: agent-desk-${{ steps.chart_version.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.latest_tag.outputs.tag }}
           writeToFile: true
-          changelogFilePath: CHANGELOG.md
           includeInvalidCommits: true
           excludeTypes: build,docs,style,other
 
+      # -----------------------------
+      # Copy changelog into Helm chart
+      # -----------------------------
       - name: Copy CHANGELOG into Helm chart
         run: |
           cp CHANGELOG.md charts/AgentDesk/CHANGELOG.md
 
-      - name: Commit changelog
+      # -----------------------------
+      # Commit CHANGELOG files
+      # -----------------------------
+      - name: Commit CHANGELOG.md
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
+          branch: ${{ github.ref_name }}
           commit_message: "docs(changelog): update changelog [skip ci]"
           file_pattern: |
             CHANGELOG.md
             charts/AgentDesk/CHANGELOG.md
+
+      # -----------------------------
+      # Release Helm charts
+      # -----------------------------
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
