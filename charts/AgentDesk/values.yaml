@@ -178,8 +178,6 @@ unified-agent:
         value: "192.168.1.17"
       - name: EXT_STATIC
         value: "U2FsdGVkX1+YVwobqsio9pRiIEcB9FzpTYbnmzSDEm0="
-      - name: ENABLE_SIP_LOGS
-        value: "false"
       - name: STATIC_QUEUE_TRANSFER_DN
         value: "99887766"
       - name: AUTO_CALL_ANSWER_TIMER

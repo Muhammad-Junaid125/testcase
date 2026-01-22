@@ -1,4 +1,4 @@
-name: Release Helm Charts with Changelog
+name: Release Helm Charts
 
 on:
   push:
@@ -16,89 +16,23 @@ jobs:
       contents: write
 
     steps:
-      # -----------------------------
-      # Checkout full git history
-      # -----------------------------
+      # Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # -----------------------------
-      # Configure Git identity
-      # -----------------------------
-      - name: Configure Git
+      # Required for chart-releaser (fixes your error)
+      - name: Configure Git identity
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
 
-      # -----------------------------
       # Install Helm
-      # -----------------------------
       - name: Install Helm
         uses: azure/setup-helm@v3
 
-      # -----------------------------
-      # Add Helm repositories
-      # -----------------------------
-      - name: Add Helm repos
-        run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-
-      # -----------------------------
-      # Get previous git tag
-      # -----------------------------
-      - name: Get previous tag
-        id: prev_tag
-        run: |
-          PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
-          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-
-      # -----------------------------
-      # Get new chart version (from Chart.yaml)
-      # -----------------------------
-      - name: Get chart version
-        id: chart_version
-        run: |
-          VERSION=$(yq '.version' charts/AgentDesk/Chart.yaml)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      # -----------------------------
-      # Generate CHANGELOG.md
-      # -----------------------------
-      - name: Generate CHANGELOG.md
-        uses: requarks/changelog-action@v1
-        with:
-          fromTag: ${{ steps.prev_tag.outputs.prev_tag }}
-          toTag: HEAD
-          token: ${{ secrets.GITHUB_TOKEN }}
-          writeToFile: true
-          includeInvalidCommits: true
-          excludeTypes: build,docs,style,other
-
-      # -----------------------------
-      # Copy changelog into Helm chart
-      # -----------------------------
-      - name: Copy CHANGELOG into Helm chart
-        run: |
-          cp CHANGELOG.md charts/AgentDesk/CHANGELOG.md
-
-      # -----------------------------
-      # Commit CHANGELOG files
-      # -----------------------------
-      - name: Commit CHANGELOG.md
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          branch: ${{ github.ref_name }}
-          commit_message: "docs(changelog): update changelog [skip ci]"
-          file_pattern: |
-            CHANGELOG.md
-            charts/AgentDesk/CHANGELOG.md
-
-      # -----------------------------
-      # Release Helm charts
-      # -----------------------------
+      # Release charts
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
         env:
