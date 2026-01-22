@@ -19,7 +19,7 @@
 
 
 global:
-  ingressRouter: "devops.ef.com"
+  ingressRouter: "expertflow.ef.com"
   ingressCertName: "ef-ingress-tls-secret"
   ingressClassName: "nginx"
   efCxReleaseName: "ef-cx"
@@ -74,13 +74,13 @@ unified-agent:
    enabled: true
    replicaCount: 1
    image:
-      repository: cim/unified-agent
-      tag: "5.2.0"
+      repository: cim/unified-agent/build
+      tag: "5.0.1_f-CIM-32387"
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
       - name: "http-un-ag-80"
-        containerPort: 8080
+        containerPort: 80
    extraEnvVars:
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
@@ -150,7 +150,7 @@ unified-agent:
         value: "U2FsdGVkX18F8f3/3XmssO1QK8vCrmVje1z4HqCVrB0="
       - name: finesseFlavor
         value: "UCCX"
-      - name: hello
+      - name: inboundTypeCCE
         value: "PREROUTE_ACD_IN"
       - name: inboundTypeCCX
         value: "ACD_IN"
@@ -178,6 +178,8 @@ unified-agent:
         value: "192.168.1.17"
       - name: EXT_STATIC
         value: "U2FsdGVkX1+YVwobqsio9pRiIEcB9FzpTYbnmzSDEm0="
+      - name: ENABLE_SIP_LOGS
+        value: "false"
       - name: STATIC_QUEUE_TRANSFER_DN
         value: "99887766"
       - name: AUTO_CALL_ANSWER_TIMER
