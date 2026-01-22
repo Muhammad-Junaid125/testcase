@@ -150,7 +150,7 @@ unified-agent:
         value: "U2FsdGVkX18F8f3/3XmssO1QK8vCrmVje1z4HqCVrB0="
       - name: finesseFlavor
         value: "UCCX"
-      - name: inboundTypeCCE
+      - name: hello
         value: "PREROUTE_ACD_IN"
       - name: inboundTypeCCX
         value: "ACD_IN"
