@@ -75,7 +75,7 @@ unified-agent:
    replicaCount: 1
    image:
       repository: cim/unified-agent
-      tag: "5.0"
+      tag: "5.2.0"
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -179,9 +179,7 @@ unified-agent:
       - name: SECURE_LINK_URL
         value: "https://{{ .Values.global.ingressRouter  }}/secure-link"
       - name: finesseURLForAgent
-        value: "https://122.129.75.138:8445"
-      - name: isSecureLinkEnabled
-        value: "false"
+        value: "https://122.129.75.138:844
       - name: Enable_Voice_Events_For_CRM
         value: "false"
       - name: IS_FINESSE_HA_ENABLED
@@ -216,7 +214,7 @@ unified-agent:
       portName: "http-un-ag-80"
       targetPort: "http-un-ag-80"
    ingress:
-      enabled: false
+      enabled: true
       ingressAssets:
         enabled: false
         annotations: {}
