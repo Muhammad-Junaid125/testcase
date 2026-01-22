@@ -172,18 +172,6 @@ unified-agent:
         value: "20316843be924c8ab4f57a7a"
       - name: CX_VOICE_MRD
         value: "62f9e360ea5311eda05b0242"
-      - name: SIP_SOCKET_URL
-        value: "wss://192.168.1.17:7443"
-      - name: SIP_URI
-        value: "192.168.1.17"
-      - name: EXT_STATIC
-        value: "U2FsdGVkX1+YVwobqsio9pRiIEcB9FzpTYbnmzSDEm0="
-      - name: ENABLE_SIP_LOGS
-        value: "false"
-      - name: STATIC_QUEUE_TRANSFER_DN
-        value: "99887766"
-      - name: AUTO_CALL_ANSWER_TIMER
-        value: "2"
       - name: DASHBOARD_REFRESH_TIME
         value: "10000"
       - name: isCrmEventsEnabled
@@ -265,14 +253,6 @@ grafana:
     - configMapName: '{{ .Values.global.efGrafanaSupervisorDashboardConfigMap }}'
       folderName: default
       fileName: '{{ .Values.global.efGrafanaSupervisorDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaAgentDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaAgentDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaAgentTeamsDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaAgentTeamsDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardConfigMap }}'
-      folderName: default
       fileName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardFilename }}'
     - configMapName: '{{ .Values.global.efGrafanaSocialMediaPerformanceTrendDashboardConfigMap }}'
       folderName: default
