@@ -9,16 +9,6 @@ on:
     paths:
       - 'charts/**'
 
-  # Manual trigger for changelog between tags
-  workflow_dispatch:
-    inputs:
-      fromTag:
-        description: "Previous release tag (e.g. agent-desk-5.0.5)"
-        required: true
-      toTag:
-        description: "New release tag (e.g. agent-desk-5.0.6)"
-        required: true
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -57,16 +47,21 @@ jobs:
           helm repo update
 
       # -----------------------------
+      # Release Helm charts
+      # -----------------------------
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # -----------------------------
       # Generate CHANGELOG.md
-      # Between fromTag -> toTag
+      # Uses latest tag automatically
       # -----------------------------
       - name: Generate CHANGELOG.md
-        if: github.event_name == 'workflow_dispatch'
         uses: requarks/changelog-action@v1
         with:
+          tag: agent-desk-5.0.7
           token: ${{ secrets.GITHUB_TOKEN }}
-          fromTag: ${{ inputs.fromTag }}
-          toTag: ${{ inputs.toTag }}
           writeToFile: true
           includeInvalidCommits: true
           excludeTypes: build,docs,style,other
@@ -75,7 +70,6 @@ jobs:
       # Copy changelog into Helm chart
       # -----------------------------
       - name: Copy CHANGELOG into Helm chart
-        if: github.event_name == 'workflow_dispatch'
         run: |
           cp CHANGELOG.md charts/AgentDesk/CHANGELOG.md
 
@@ -83,18 +77,10 @@ jobs:
       # Commit CHANGELOG files
       # -----------------------------
       - name: Commit CHANGELOG.md
-        if: github.event_name == 'workflow_dispatch'
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "docs(changelog): release ${{ inputs.toTag }} [skip ci]"
+          branch: ${{ github.ref_name }}
+          commit_message: "docs(changelog): update changelog [skip ci]"
           file_pattern: |
             CHANGELOG.md
             charts/AgentDesk/CHANGELOG.md
-
-      # -----------------------------
-      # Release Helm charts
-      # -----------------------------
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

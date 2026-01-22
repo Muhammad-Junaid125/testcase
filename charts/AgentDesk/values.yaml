@@ -75,7 +75,7 @@ unified-agent:
    replicaCount: 1
    image:
       repository: cim/unified-agent
-      tag: "5.0.5"
+      tag: "5.0.7"
    efConnectionVars: true
    efEnvironmentVars: true
    containerPorts:
@@ -89,13 +89,13 @@ unified-agent:
       - name: CONVERSATION_MANAGER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/conversation-manager"
       - name: CIM_REPORTING_URL
-        value: "https://{{ .Values.global.ingressRouter  }}/realtime-reports"
+        value: "https://{{ .Values.global.IngressSQL  }}/realtime-reports"
       - name: CIM_CUSTOMER_URL
         value: "https://{{ .Values.global.ingressRouter  }}/cim-customer"
       - name: GDB
         value: "https://{{ .Values.global.ingressRouter  }}/unified-admin"
       - name: CCM_URL
-        value: ccm123
+        value: ccm12366666666666666ahahgigsigxs
       - name: ROUTING_ENGINE_URL
         value: "https://{{ .Values.global.ingressRouter  }}/routing-engine"
       - name: TEAM_ANNOUNCEMENT_URL
@@ -114,18 +114,6 @@ unified-agent:
         value: "false"
       - name: Enable_Voice_Events_For_CRM
         value: "false"
-      - name: IS_FINESSE_HA_ENABLED
-        value: "false"
-      - name: SECONDARY_FINESSE_URL
-        value: "https://finesse12-5.ucce.ipcc:8445"
-      - name: CISCO_SERVICE_IDENTIFIER
-        value: "0000"
-      - name: SIP_MONITORING_DN
-        value: "*44"
-      - name: SIP_EXTERNAL_DN
-        value: "99887765"
-      - name: AUTO_ANSWER_DELAY
-        value: "5000"
       - name: SOCKET_TIMEOUT
         value: "20000"
       - name: IS_WEBRTC_VIDEO_ENABLED
@@ -171,7 +159,7 @@ grafana:
   image:
     registry: gitimages.expertflow.com
     repository: general/grafana000
-    tag: 12.9.2-debian-25-r0-tagsggsg
+    tag: 12.9.2-debian-25-r0-07tagsggsg
     pullPolicy: IfNotPresent
   dashboardsProvider:
     enabled: false
