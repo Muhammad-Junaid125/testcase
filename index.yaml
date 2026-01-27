@@ -3,6 +3,24 @@ entries:
   activemq:
   - apiVersion: v2
     appVersion: 4.9.0
+    created: "2026-01-27T11:01:33.608353512Z"
+    description: Expertflow CX Solution ActiveMQ
+    digest: 32f912ffb4e9cfc4755cd65da3452b031e11e269c6f37cd778b89525c53e1334
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: activemq
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/activemq-4.9.6/activemq-4.9.6.tgz
+    version: 4.9.6
+  - apiVersion: v2
+    appVersion: 4.9.0
     created: "2026-01-27T10:38:56.594740005Z"
     description: Expertflow CX Solution ActiveMQ
     digest: cbe3a22639ed3d2a8b08c257452e3e8308f14529df0190e00c234f1707d2b803
@@ -216,6 +234,37 @@ entries:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/apisix-2.10.0/apisix-2.10.0.tgz
     version: 2.10.0
   campaigns:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T11:01:33.832473795Z"
+    dependencies:
+    - condition: campaigns-backend.enabled
+      name: campaigns-backend
+      repository: file://charts/campaigns-backend
+      version: 1.0.0
+    - condition: campaign-studio.enabled
+      name: campaign-studio
+      repository: file://charts/campaign-studio
+      version: 1.0.0
+    - condition: scheduled-activities.enabled
+      name: scheduled-activities
+      repository: file://charts/scheduled-activities
+      version: 1.0.0
+    description: Expertflow CX Solution Campaigns
+    digest: a59c3f5b36ffd9375ca288260f8eccdc8b9a17bb828c937dc3654fef0d693009
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: campaigns
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/campaigns-4.9.6/campaigns-4.9.6.tgz
+    version: 4.9.6
   - apiVersion: v2
     appVersion: 4.9.0
     created: "2026-01-27T10:38:57.148321501Z"
@@ -901,4 +950,4 @@ entries:
     urls:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/qm-4.8.0/qm-4.8.0.tgz
     version: 4.8.0
-generated: "2026-01-27T10:39:02.514623182Z"
+generated: "2026-01-27T11:01:33.832519931Z"
