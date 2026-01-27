@@ -85,3 +85,132 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+##############
+name: Release Helm Charts with Per-Chart Changelog
+
+on:
+  push:
+    branches:
+      - main
+      - CX-4.10.4
+      - CX-5.0-alpha
+    paths:
+      - 'charts/**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ------------------------------------
+      # Checkout full git history
+      # ------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------
+      # Configure Git identity (REQUIRED)
+      # ------------------------------------
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      # ------------------------------------
+      # Install Helm
+      # ------------------------------------
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      # ------------------------------------
+      # Install required tools
+      # ------------------------------------
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+          npm install -g git-cliff
+
+      # ------------------------------------
+      # Detect changed Helm charts (SAFE)
+      # ------------------------------------
+      - name: Detect changed charts
+        id: charts
+        shell: bash
+        run: |
+          CHANGED_CHARTS=$(git diff --name-only HEAD~1 HEAD \
+            | grep '^charts/' \
+            | cut -d/ -f2 \
+            | sort -u \
+            | tr '\n' ' ')
+
+          echo "charts=${CHANGED_CHARTS}" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------
+      # Debug (optional but useful)
+      # ------------------------------------
+      - name: Debug changed charts
+        run: |
+          echo "Changed charts: '${{ steps.charts.outputs.charts }}'"
+
+      # ------------------------------------
+      # Generate changelog per changed chart
+      # ------------------------------------
+      - name: Generate per-chart changelogs
+        if: steps.charts.outputs.charts != ''
+        shell: bash
+        run: |
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            echo "Generating changelog for chart: $chart"
+
+            CHART_PATH="charts/$chart"
+            VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
+            CURRENT_TAG="$chart-$VERSION"
+
+            PREV_TAG=$(git tag --list "$chart-*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n 1 || true)
+
+            mkdir -p "$CHART_PATH"
+
+            if [ -n "$PREV_TAG" ]; then
+              echo "Using tag range: $PREV_TAG..HEAD"
+              git cliff "$PREV_TAG..HEAD" --output "$CHART_PATH/CHANGELOG.md"
+            else
+              echo "No previous tag found, generating full changelog"
+              git cliff --output "$CHART_PATH/CHANGELOG.md"
+            fi
+          done
+
+      # ------------------------------------
+      # Commit changelog files
+      # ------------------------------------
+      - name: Commit changelogs
+        shell: bash
+        run: |
+          git add charts/*/CHANGELOG.md
+          git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || echo "No changes to commit"
+          git push
+          
+      - name: Update Helm dependencies
+        run: |
+          for d in charts/*; do
+            if [ -f "$d/Chart.yaml" ]; then
+              helm dependency update "$d"
+            fi
+          done
+
+      # ------------------------------------
+      # Release Helm charts
+      # ------------------------------------
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

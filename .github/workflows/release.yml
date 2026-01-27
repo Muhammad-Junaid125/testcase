@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       # ------------------------------------
-      # Configure Git identity (REQUIRED)
+      # Configure Git identity
       # ------------------------------------
       - name: Configure Git
         run: |
@@ -39,6 +39,16 @@ jobs:
         uses: azure/setup-helm@v3
 
       # ------------------------------------
+      # Add ALL required Helm repositories
+      # ------------------------------------
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add apiseven https://charts.apiseven.com
+          helm repo update
+
+      # ------------------------------------
       # Install required tools
       # ------------------------------------
       - name: Install tools
@@ -50,64 +60,60 @@ jobs:
           npm install -g git-cliff
 
       # ------------------------------------
-      # Detect changed Helm charts (SAFE)
+      # Detect changed charts (TAG-SAFE)
       # ------------------------------------
       - name: Detect changed charts
         id: charts
         shell: bash
         run: |
-          CHANGED_CHARTS=$(git diff --name-only HEAD~1 HEAD \
-            | grep '^charts/' \
-            | cut -d/ -f2 \
-            | sort -u \
-            | tr '\n' ' ')
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            git diff --name-only "$LAST_TAG"..HEAD
+          else
+            git diff --name-only HEAD
+          fi \
+          | grep '^charts/' \
+          | cut -d/ -f2 \
+          | sort -u \
+          | tr '\n' ' ' > charts.txt
 
-          echo "charts=${CHANGED_CHARTS}" >> "$GITHUB_OUTPUT"
-
-      # ------------------------------------
-      # Debug (optional but useful)
-      # ------------------------------------
-      - name: Debug changed charts
-        run: |
-          echo "Changed charts: '${{ steps.charts.outputs.charts }}'"
+          echo "charts=$(cat charts.txt)" >> "$GITHUB_OUTPUT"
 
       # ------------------------------------
-      # Generate changelog per changed chart
+      # Generate per-chart changelogs
       # ------------------------------------
       - name: Generate per-chart changelogs
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
           for chart in ${{ steps.charts.outputs.charts }}; do
-            echo "Generating changelog for chart: $chart"
+            echo "Generating changelog for $chart"
 
             CHART_PATH="charts/$chart"
             VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
             CURRENT_TAG="$chart-$VERSION"
 
-            PREV_TAG=$(git tag --list "$chart-*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n 1 || true)
-
-            mkdir -p "$CHART_PATH"
+            PREV_TAG=$(git tag --list "$chart-*" --sort=-v:refname | head -n 1 || true)
 
             if [ -n "$PREV_TAG" ]; then
-              echo "Using tag range: $PREV_TAG..HEAD"
               git cliff "$PREV_TAG..HEAD" --output "$CHART_PATH/CHANGELOG.md"
             else
-              echo "No previous tag found, generating full changelog"
               git cliff --output "$CHART_PATH/CHANGELOG.md"
             fi
           done
 
       # ------------------------------------
-      # Commit changelog files
+      # Commit changelogs
       # ------------------------------------
       - name: Commit changelogs
-        shell: bash
         run: |
           git add charts/*/CHANGELOG.md
-          git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || echo "No changes to commit"
+          git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || true
           git push
-          
+
+      # ------------------------------------
+      # Update Helm dependencies
+      # ------------------------------------
       - name: Update Helm dependencies
         run: |
           for d in charts/*; do
