@@ -143,14 +143,10 @@ extraEnvVars:
      value: "-1"
    - name: REDIS_MIN_IDLE
      value: "100"
-   - name: REDIS_TIMEOUT
-     value: "2000"
-   - name: REDIS_SENTINEL_ENABLE
-     value: "false"
    - name : REDIS_SENTINEL_MASTER
      value: "expertflow"
    - name : REDIS_SENTINEL_NODES
-     value: "nikka-redis-node-0.nikka-redis-headless.ef-external.svc.cluster.local:26379,nikka-redis-node-1.nikka-redis-headless.ef-external.svc.cluster.local:26379,nikka-redis-node-2.nikka-redis-headless.ef-external.svc.cluster.local:26379"
+     value: "nikka-redis-node-0.nikka-redis-headless.ef-exte.ef-external.svc.cluster.local:26379,nikka-redis-node-2.nikka-redis-headless.ef-external.svc.cluster.local:26379"
    - name : REDIS_SENTINEL_PASSWORD
      value: "Expertflow123"
    - name: DB_URL
@@ -343,16 +339,12 @@ containerSecurityContext:
 ##     containerPort: 4317 # Digit
 ##
 containerPorts: 
-  - name: tcp-amq8162
+  - name: tcp-amq816456
     containerPort: 8162
   - name: tcp-amq61613
     containerPort: 61613
   - name: tcp-amq61614
     containerPort: 61614
-  - name: tcp-amq61615
-    containerPort: 61615
-  - name: tcp-amq61616
-    containerPort: 61616
   - name: tcp-amq61617
     containerPort: 61617
 
