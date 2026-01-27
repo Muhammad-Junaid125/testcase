@@ -1,30 +1,12 @@
-[changelog]
-header = """
-# Changelog
-All notable changes to this project will be documented in this file.\n
-"""
-body = """
----
-## {{ version }} - {{ timestamp | date(format="%Y-%m-%d") }}
-
-{% for group, commits in commits | group_by(attribute="group") %}
-### {{ group | upper_first }}
-{% for commit in commits %}
-* [{{ commit.id | truncate(length=7, end="") }}](https://github.com/{{ env.GITHUB_REPOSITORY }}/commit/{{ commit.id }}) - {{ commit.message | upper_first }} (commit by @{{ commit.author.name }})
-{% endfor %}
-{% endfor %}
-"""
-
 [git]
-conventional_commits = true
-filter_unconventional = true
+conventional_commits = false # Set to false if you don't use strict conventional commits
+filter_unconventional = false # Don't hide commits that fail the regex
+# Add a fallback parser to catch everything else
 commit_parsers = [
     { message = "^feat", group = "🚀 Features" },
     { message = "^fix", group = "🐛 Bug Fixes" },
     { message = "^doc", group = "📚 Documentation" },
     { message = "^perf", group = "⚡ Performance" },
     { message = "^refactor", group = "🚜 Refactor" },
-    { message = "^chore", group = "⚙️ Miscellaneous Tasks" },
+    { message = ".*", group = "⚙️ Other Changes" }, # This catches everything else
 ]
-tag_pattern = ".*-[0-9]*"
-sort_commits = "newest"

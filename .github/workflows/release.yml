@@ -62,11 +62,12 @@ jobs:
 
             echo "Generating changelog for $RELEASE_NAME"
             
-            # Generate the changelog for this specific folder
+            # Pass the repository path as context so the template can build links
             git-cliff \
               --config cliff.toml \
               --include-path "$CHART_PATH/**" \
               --tag "$RELEASE_NAME" \
+              --context "{ \"repository\": \"${{ github.repository }}\" }" \
               --output "$CHART_PATH/CHANGELOG.md"
           done
 
