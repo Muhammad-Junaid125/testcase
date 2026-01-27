@@ -95,7 +95,7 @@ campaigns-backend:
       - name: CCM_URL
         value: http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081
       - name: SCHEDULER_URL
-        value: http://{{ .Release.Name }}-scheduled-activities-svc.{{ .Release.Namespace }}.svc:8894
+        value: http://{{ .Release.Name }}elease.Namespace }}.svc:8894
    siteEnvVars: []
    service:
       enabled: true
