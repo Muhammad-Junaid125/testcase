@@ -1,5 +1,24 @@
 apiVersion: v1
 entries:
+  activemq:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T10:38:56.594740005Z"
+    description: Expertflow CX Solution ActiveMQ
+    digest: cbe3a22639ed3d2a8b08c257452e3e8308f14529df0190e00c234f1707d2b803
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: activemq
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/activemq-4.9.5/activemq-4.9.5.tgz
+    version: 4.9.5
   agent-desk:
   - apiVersion: v2
     appVersion: 5.2.0
@@ -163,4 +182,723 @@ entries:
     urls:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/agent-desk-5.0.3/agent-desk-5.0.3.tgz
     version: 5.0.3
-generated: "2026-01-22T07:33:26.390156606Z"
+  apisix:
+  - annotations:
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 3.11.0
+    created: "2026-01-27T10:38:56.833992647Z"
+    dependencies:
+    - condition: etcd.enabled
+      name: etcd
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.7.3
+    - alias: dashboard
+      condition: dashboard.enabled
+      name: apisix-dashboard
+      repository: https://charts.apiseven.com
+      version: 0.8.2
+    - alias: ingress-controller
+      condition: ingress-controller.enabled
+      name: apisix-ingress-controller
+      repository: https://charts.apiseven.com
+      version: 0.14.0
+    description: A Helm chart for Apache APISIX v3
+    digest: e83a953d5de34b9ce81656f4ccb8ba4dd30c8f14c2012eff1d404379926e0152
+    icon: https://apache.org/logos/res/apisix/apisix.png
+    maintainers:
+    - name: tao12345666333
+    name: apisix
+    sources:
+    - https://github.com/apache/apisix-helm-chart
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/apisix-2.10.0/apisix-2.10.0.tgz
+    version: 2.10.0
+  campaigns:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T10:38:57.148321501Z"
+    dependencies:
+    - condition: campaigns-backend.enabled
+      name: campaigns-backend
+      repository: file://charts/campaigns-backend
+      version: 1.0.0
+    - condition: campaign-studio.enabled
+      name: campaign-studio
+      repository: file://charts/campaign-studio
+      version: 1.0.0
+    - condition: scheduled-activities.enabled
+      name: scheduled-activities
+      repository: file://charts/scheduled-activities
+      version: 1.0.0
+    description: Expertflow CX Solution Campaigns
+    digest: e89a2fc86c7aad58815e1b70209faac5e201e65f847c2bd47c64153073439bdb
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: campaigns
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/campaigns-4.9.5/campaigns-4.9.5.tgz
+    version: 4.9.5
+  channels:
+  - apiVersion: v2
+    appVersion: 4.9.5
+    created: "2026-01-27T10:38:57.45332633Z"
+    dependencies:
+    - condition: connect360.enabled
+      name: connect360
+      repository: file://charts/connect360
+      version: 1.0.0
+    - condition: facebook-connector.enabled
+      name: facebook-connector
+      repository: file://charts/facebook-connector
+      version: 1.0.0
+    - condition: instagram-connector.enabled
+      name: instagram-connector
+      repository: file://charts/instagram-connector
+      version: 1.0.0
+    - condition: smpp-connector.enabled
+      name: smpp-connector
+      repository: file://charts/smpp-connector
+      version: 1.0.0
+    - condition: telegram-connector.enabled
+      name: telegram-connector
+      repository: file://charts/telegram-connector
+      version: 1.0.0
+    - condition: twilio-connector.enabled
+      name: twilio-connector
+      repository: file://charts/twilio-connector
+      version: 1.0.0
+    - condition: twitter-connector.enabled
+      name: twitter-connector
+      repository: file://charts/twitter-connector
+      version: 1.0.0
+    - condition: viber-connector.enabled
+      name: viber-connector
+      repository: file://charts/viber-connector
+      version: 1.0.0
+    - condition: youtube-connector.enabled
+      name: youtube-connector
+      repository: file://charts/youtube-connector
+      version: 1.0.0
+    - condition: email-connector.enabled
+      name: email-connector
+      repository: file://charts/email-connector
+      version: 1.0.0
+    - condition: ms-email-connector.enabled
+      name: ms-email-connector
+      repository: file://charts/ms-email-connector
+      version: 1.0.0
+    - condition: whatsapp-connector.enabled
+      name: whatsapp-connector
+      repository: file://charts/whatsapp-connector
+      version: 1.0.0
+    - condition: linkedin-connector.enabled
+      name: linkedin-connector
+      repository: file://charts/linkedin-connector
+      version: 1.0.14
+    description: Expertflow CX Solution Channels
+    digest: 66feb1a4a45f6bc87fee9b3bc5a984cb533457d93556ddf2899abaf366c98a60
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: channels
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/channels-4.9.5/channels-4.9.5.tgz
+    version: 4.9.5
+  cisco-scheduler:
+  - apiVersion: v2
+    appVersion: 4.7.0
+    created: "2026-01-27T10:38:57.859486531Z"
+    description: Expertflow CX Solution Cisco Integrations
+    digest: af77dc3b91d847f30981a0f77645a9484ae0dfc3c966c5316a66424c81e0a3d7
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: cisco-scheduler
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/cisco-scheduler-4.7.0/cisco-scheduler-4.7.0.tgz
+    version: 4.7.0
+  cisco-sync-service:
+  - apiVersion: v2
+    appVersion: 4.6.0
+    created: "2026-01-27T10:38:58.124977189Z"
+    description: Expertflow CX Solution
+    digest: e88ac99f8b246a3eb4bd27e1dffdcfba98de1b12a6f2f072517c577c778f305c
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: cisco-sync-service
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/cisco-sync-service-1.0.14/cisco-sync-service-1.0.14.tgz
+    version: 1.0.14
+  clamav:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T10:38:58.328810988Z"
+    description: Expertflow CX Solution
+    digest: b4bc33c4950e3890c4d63a05be494c7ad3865e5ee30001ab3e16f75702b6d7dc
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: clamav
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/clamav-4.9.0/clamav-4.9.0.tgz
+    version: 4.9.0
+  cx:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T10:38:58.674797521Z"
+    dependencies:
+    - condition: agent-manager.enabled
+      name: agent-manager
+      repository: file://charts/agent-manager
+      version: 1.0.0
+    - condition: bot-framework.enabled
+      name: bot-framework
+      repository: file://charts/bot-framework
+      version: 1.0.0
+    - condition: ccm.enabled
+      name: ccm
+      repository: file://charts/ccm
+      version: 1.0.0
+    - condition: cim-customer.enabled
+      name: cim-customer
+      repository: file://charts/cim-customer
+      version: 1.0.0
+    - condition: conversation-manager.enabled
+      name: conversation-manager
+      repository: file://charts/conversation-manager
+      version: 1.0.0
+    - condition: conversation-monitor.enabled
+      name: conversation-monitor
+      repository: file://charts/conversation-monitor
+      version: 1.0.0
+    - condition: customer-widget.enabled
+      name: customer-widget
+      repository: file://charts/customer-widget
+      version: 1.0.0
+    - condition: file-engine.enabled
+      name: file-engine
+      repository: file://charts/file-engine
+      version: 1.0.0
+    - condition: historical-reports.enabled
+      name: historical-reports
+      repository: file://charts/historical-reports
+      version: 1.0.0
+    - condition: license-manager.enabled
+      name: license-manager
+      repository: file://charts/license-manager
+      version: 1.0.0
+    - condition: realtime-reports.enabled
+      name: realtime-reports
+      repository: file://charts/realtime-reports
+      version: 1.0.0
+    - condition: routing-engine.enabled
+      name: routing-engine
+      repository: file://charts/routing-engine
+      version: 1.0.0
+    - condition: state-events-logger.enabled
+      name: state-events-logger
+      repository: file://charts/state-events-logger
+      version: 1.0.0
+    - condition: team-announcement.enabled
+      name: team-announcement
+      repository: file://charts/team-announcement
+      version: 1.0.0
+    - condition: unified-admin.enabled
+      name: unified-admin
+      repository: file://charts/unified-admin
+      version: 1.0.0
+    - condition: web-channel-manager.enabled
+      name: web-channel-manager
+      repository: file://charts/web-channel-manager
+      version: 1.0.0
+    - condition: business-calendar.enabled
+      name: business-calendar
+      repository: file://charts/business-calendar
+      version: 1.0.14
+    description: Expertflow CX Solution
+    digest: e194e0109258db9f3dd6146f547cd1f061ad8d7aa20d3a9cfea346ba831d8791
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: cx
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/cx-4.9.4/cx-4.9.4.tgz
+    version: 4.9.4
+  elasticsearch:
+  - annotations:
+      category: Analytics
+      images: |
+        - name: elasticsearch
+          image: docker.io/bitnami/elasticsearch:8.17.0-debian-12-r0
+        - name: elasticsearch-exporter
+          image: docker.io/bitnami/elasticsearch-exporter:1.8.0-debian-12-r5
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r34
+      licenses: Apache-2.0
+    apiVersion: v2
+    appVersion: 8.17.0
+    created: "2026-01-27T10:38:58.96550192Z"
+    dependencies:
+    - condition: global.kibanaEnabled
+      name: kibana
+      repository: file://charts/kibana
+      version: 11.x.x
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Elasticsearch is a distributed search and analytics engine. It is
+      used for web search, log monitoring, and real-time analytics. Ideal for Big
+      Data applications.
+    digest: 83841a5444693b7e19bf10caa188f4e4034316d147c16369e5e63c36f68ea5d1
+    home: https://bitnami.com
+    icon: https://bitnami.com/assets/stacks/elasticsearch/img/elasticsearch-stack-220x234.png
+    keywords:
+    - elasticsearch
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: elasticsearch
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/elasticsearch
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/elasticsearch-21.4.3/elasticsearch-21.4.3.tgz
+    version: 21.4.3
+  eleveo:
+  - apiVersion: v2
+    appVersion: 4.9.0
+    created: "2026-01-27T10:38:59.202076186Z"
+    dependencies:
+    - condition: eleveo-api.enabled
+      name: eleveo-api
+      repository: file://charts/eleveo-api
+      version: 1.0.0
+    - condition: eleveo-runner.enabled
+      name: eleveo-runner
+      repository: file://charts/eleveo-runner
+      version: 1.0.0
+    description: Expertflow CX Solution For Eleveo
+    digest: d2d91187659f63034147b871d4c866678093fec255909e1bc7302ff31bc9d537
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: eleveo
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-4.9.3/eleveo-4.9.3.tgz
+    version: 4.9.3
+  eleveo-middleware:
+  - apiVersion: v2
+    appVersion: 4.8.0
+    created: "2026-01-27T10:38:59.457195659Z"
+    description: Expertflow CX Solution
+    digest: 1fb02ac6b1dd89834fd93d3e912f58217f7793a06ee111879bbd565046ad2c1d
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: eleveo-middleware
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-middleware-4.8.0/eleveo-middleware-4.8.0.tgz
+    version: 4.8.0
+  keycloak:
+  - annotations:
+      category: DeveloperTools
+    apiVersion: v2
+    appVersion: 19.0.2
+    created: "2026-01-27T10:38:59.714851627Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.0.3
+    description: Keycloak is a high performance Java-based identity and access management
+      solution. It lets developers add an authentication layer to their applications
+      with minimum effort.
+    digest: a0d3a671f777080c28f7127f78a2c6f7bd40c86bfb7715c1422a4b2bdbee2006
+    home: https://www.keycloak.org
+    icon: https://bitnami.com/assets/stacks/keycloak/img/keycloak-stack-220x234.png
+    keywords:
+    - keycloak
+    - access-management
+    maintainers:
+    - name: Bitnami
+      url: https://github.com/bitnami/charts
+    name: keycloak
+    sources:
+    - https://github.com/bitnami/containers/tree/main/bitnami/keycloak
+    - https://github.com/keycloak/keycloak
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/keycloak-10.1.6/keycloak-10.1.6.tgz
+    version: 10.1.6
+  kube-prometheus-stack:
+  - annotations:
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Source
+          url: https://github.com/prometheus-community/helm-charts
+        - name: Upstream Project
+          url: https://github.com/prometheus-operator/kube-prometheus
+      artifacthub.io/operator: "true"
+    apiVersion: v2
+    appVersion: v0.78.2
+    created: "2026-01-27T10:39:00.085503392Z"
+    dependencies:
+    - condition: crds.enabled
+      name: crds
+      repository: ""
+      version: 0.0.0
+    - condition: kubeStateMetrics.enabled
+      name: kube-state-metrics
+      repository: file://charts/kube-state-metrics
+      version: 5.27.*
+    - condition: nodeExporter.enabled
+      name: prometheus-node-exporter
+      repository: file://charts/prometheus-node-exporter
+      version: 4.42.*
+    - condition: grafana.enabled
+      name: grafana
+      repository: file://charts/grafana
+      version: 8.7.*
+    - condition: windowsMonitoring.enabled
+      name: prometheus-windows-exporter
+      repository: file://charts/prometheus-windows-exporter
+      version: 0.7.*
+    description: kube-prometheus-stack collects Kubernetes manifests, Grafana dashboards,
+      and Prometheus rules combined with documentation and scripts to provide easy
+      to operate end-to-end Kubernetes cluster monitoring with Prometheus using the
+      Prometheus Operator.
+    digest: ba4d829ac4b09c4d391bca2125a61177360f79b3d7b7448a86a0e7dbc42fee27
+    home: https://github.com/prometheus-operator/kube-prometheus
+    icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+    keywords:
+    - operator
+    - prometheus
+    - kube-prometheus
+    kubeVersion: '>=1.19.0-0'
+    maintainers:
+    - email: andrew@quadcorps.co.uk
+      name: andrewgkew
+    - email: gianrubio@gmail.com
+      name: gianrubio
+    - email: github.gkarthiks@gmail.com
+      name: gkarthiks
+    - email: kube-prometheus-stack@sisti.pt
+      name: GMartinez-Sisti
+    - email: github@jkroepke.de
+      name: jkroepke
+    - email: scott@r6by.com
+      name: scottrigby
+    - email: miroslav.hadzhiev@gmail.com
+      name: Xtigyro
+    - email: quentin.bisson@gmail.com
+      name: QuentinBisson
+    name: kube-prometheus-stack
+    sources:
+    - https://github.com/prometheus-community/helm-charts
+    - https://github.com/prometheus-operator/kube-prometheus
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/kube-prometheus-stack-66.6.1/kube-prometheus-stack-66.6.1.tgz
+    version: 66.6.1
+  logging-operator:
+  - apiVersion: v2
+    appVersion: 4.11.2
+    created: "2026-01-27T10:39:00.400555567Z"
+    dependencies:
+    - condition: crds.install
+      name: crds
+      repository: ""
+      version: 0.0.0
+    description: Logging operator for Kubernetes based on Fluentd and Fluentbit.
+    digest: b38e955976efef33d9e09c7899bfbb82678949a37ed5dda47f28270bad42d917
+    home: https://kube-logging.github.io
+    keywords:
+    - logging
+    - fluentd
+    - fluentbit
+    kubeVersion: '>=1.22.0-0'
+    name: logging-operator
+    sources:
+    - https://github.com/kube-logging/logging-operator
+    - https://github.com/kube-logging/helm-charts/tree/main/charts/logging-operator
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/logging-operator-4.11.2/logging-operator-4.11.2.tgz
+    version: 4.11.2
+  middleware-cronjob:
+  - apiVersion: v2
+    appVersion: 4.8.0
+    created: "2026-01-27T10:39:00.853708034Z"
+    description: Expertflow CX Solution Reporting Synchronizer
+    digest: 347e5c0ae3c48818866126f0e4a8c1f669c6a5b1740b20915bc5de393e387bed
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: middleware-cronjob
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/middleware-cronjob-4.8.0/middleware-cronjob-4.8.0.tgz
+    version: 4.8.0
+  minio:
+  - annotations:
+      category: Infrastructure
+    apiVersion: v2
+    appVersion: 2022.10.5
+    created: "2026-01-27T10:39:01.263936853Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: MinIO(R) is an object storage server, compatible with Amazon S3 cloud
+      storage service, mainly used for storing unstructured data (such as photos,
+      videos, log files, etc.).
+    digest: 4e93a74ddcdf118c085ea4b79692e0e7ac0b1be3b9dada69d9b20dbdd04d4033
+    home: https://github.com/bitnami/charts/tree/master/bitnami/minio
+    icon: https://bitnami.com/assets/stacks/minio/img/minio-stack-220x234.png
+    keywords:
+    - minio
+    - storage
+    - object-storage
+    - s3
+    - cluster
+    maintainers:
+    - name: Bitnami
+      url: https://github.com/bitnami/charts
+    name: minio
+    sources:
+    - https://github.com/bitnami/containers/tree/main/bitnami/minio
+    - https://min.io
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/minio-11.10.6/minio-11.10.6.tgz
+    version: 11.10.6
+  mongodb:
+  - annotations:
+      category: Database
+    apiVersion: v2
+    appVersion: 6.0.2
+    created: "2026-01-27T10:39:01.531722613Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.0.3
+    description: MongoDB(R) is a relational open source NoSQL database. Easy to use,
+      it stores data in JSON-like documents. Automated scalability and high-performance.
+      Ideal for developing cloud native applications.
+    digest: adb8ae66435e1a071ca9e2d3cb780ae89c2a73f3dd4212576447a3d699e09337
+    home: https://github.com/bitnami/charts/tree/master/bitnami/mongodb
+    icon: https://bitnami.com/assets/stacks/mongodb/img/mongodb-stack-220x234.png
+    keywords:
+    - mongodb
+    - database
+    - nosql
+    - cluster
+    - replicaset
+    - replication
+    maintainers:
+    - name: Bitnami
+      url: https://github.com/bitnami/charts
+    name: mongodb
+    sources:
+    - https://github.com/bitnami/containers/tree/main/bitnami/mongodb
+    - https://mongodb.org
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/mongodb-13.1.8/mongodb-13.1.8.tgz
+    version: 13.1.8
+  mongodb-ha:
+  - annotations:
+      category: Database
+    apiVersion: v2
+    appVersion: 6.0.2
+    created: "2026-01-27T10:39:01.773349301Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.0.3
+    description: MongoDB(R) is a relational open source NoSQL database. Easy to use,
+      it stores data in JSON-like documents. Automated scalability and high-performance.
+      Ideal for developing cloud native applications.
+    digest: 23cc5357d3c0212812f7edb69cb71ed305616a8e108516c0617e144510684ee6
+    home: https://github.com/bitnami/charts/tree/master/bitnami/mongodb
+    icon: https://bitnami.com/assets/stacks/mongodb/img/mongodb-stack-220x234.png
+    keywords:
+    - mongodb
+    - database
+    - nosql
+    - cluster
+    - replicaset
+    - replication
+    maintainers:
+    - name: Bitnami
+      url: https://github.com/bitnami/charts
+    name: mongodb-ha
+    sources:
+    - https://github.com/bitnami/containers/tree/main/bitnami/mongodb
+    - https://mongodb.org
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/mongodb-ha-13.1.8/mongodb-ha-13.1.8.tgz
+    version: 13.1.8
+  opensearch:
+  - annotations:
+      category: Analytics
+      images: |
+        - name: opensearch
+          image: docker.io/bitnami/opensearch:2.18.0-debian-12-r2
+        - name: opensearch-dashboards
+          image: docker.io/bitnami/opensearch-dashboards:2.18.0-debian-12-r2
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r34
+      licenses: Apache-2.0
+    apiVersion: v2
+    appVersion: 2.18.0
+    created: "2026-01-27T10:39:02.000004447Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: OpenSearch is a scalable open-source solution for search, analytics,
+      and observability. Features full-text queries, natural language processing,
+      custom dictionaries, amongst others.
+    digest: b7ee8e309b89620afe86b8b2d87e93495847ae5013fbe1b6d7f3dd9837f03d29
+    home: https://bitnami.com
+    icon: https://bitnami.com/assets/stacks/opensearch/img/opensearch-stack-220x234.png
+    keywords:
+    - opensearch
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: opensearch
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/opensearch
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/opensearch-1.5.1/opensearch-1.5.1.tgz
+    version: 1.5.1
+  postgresql:
+  - annotations:
+      category: Database
+    apiVersion: v2
+    appVersion: 14.5.0
+    created: "2026-01-27T10:39:02.253120114Z"
+    dependencies:
+    - name: common
+      repository: file://charts/common
+      tags:
+      - bitnami-common
+      version: 2.0.3
+    description: PostgreSQL (Postgres) is an open source object-relational database
+      known for reliability and data integrity. ACID-compliant, it supports foreign
+      keys, joins, views, triggers and stored procedures.
+    digest: c64df2f2039c3258c468324dccb6544fa4839d32dbfea0916674897eebfb2ca4
+    home: https://github.com/bitnami/charts/tree/master/bitnami/postgresql
+    icon: https://bitnami.com/assets/stacks/postgresql/img/postgresql-stack-220x234.png
+    keywords:
+    - postgresql
+    - postgres
+    - database
+    - sql
+    - replication
+    - cluster
+    maintainers:
+    - name: Bitnami
+      url: https://github.com/bitnami/charts
+    name: postgresql
+    sources:
+    - https://github.com/bitnami/containers/tree/main/bitnami/postgresql
+    - https://www.postgresql.org/
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/postgresql-11.9.8/postgresql-11.9.8.tgz
+    version: 11.9.8
+  qm:
+  - apiVersion: v2
+    appVersion: 4.8.0
+    created: "2026-01-27T10:39:02.514607051Z"
+    dependencies:
+    - condition: qm-backend.enabled
+      name: qm-backend
+      repository: file://charts/qm-backend
+      version: 1.0.0
+    - condition: qm-connector.enabled
+      name: qm-connector
+      repository: file://charts/qm-connector
+      version: 1.0.0
+    description: Expertflow CX Solution
+    digest: 94e303c79d1468a10d9f5fcbc7932e6bb9711af6ac0c284904aeaddfe4e49650
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: qm
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/qm-4.8.0/qm-4.8.0.tgz
+    version: 4.8.0
+generated: "2026-01-27T10:39:02.514623182Z"
