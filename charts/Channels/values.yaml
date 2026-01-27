@@ -1,0 +1,576 @@
+# Default values for ef-cx.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#
+# ███████ ██   ██ ██████  ███████ ██████  ████████ ███████ ██       ██████  ██     ██ 
+# ██       ██ ██  ██   ██ ██      ██   ██    ██    ██      ██      ██    ██ ██     ██ 
+# █████     ███   ██████  █████   ██████     ██    █████   ██      ██    ██ ██  █  ██ 
+# ██       ██ ██  ██      ██      ██   ██    ██    ██      ██      ██    ██ ██ ███ ██ 
+# ███████ ██   ██ ██      ███████ ██   ██    ██    ██      ███████  ██████   ███ ███  
+#
+# Globals Section:
+#
+# global.ingressRouter: Provides a central location for the FQDN that will be used \
+#                       across the EF CX solution
+# global.registry: when deploying solution with limited access to internet, \
+#                  changing this will cause all subsequent image pulls from this registry. \
+#                  Used as Variable in all sub-charts
+#
+
+
+global:
+  ingressRouter: "devops77.ef.com"
+  ingressCertName: "ef-ingress-tls-secret"
+  ingressClassName: "nginx"
+  efCxReleaseName: "ef-cx"
+  commonIngressAnnotations: {}
+  ##    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  ##    nginx.ingress.kubernetes.io/use-regex: "true"
+  imageRegistry: "gitimages.expertflow.com"
+  imagePullSecrets: 
+   - ef-gitlab-secret
+  ## The CommonEnvVars are now part of the globals. Selective adaption to components is mandatory.
+  efCommonVars_IS_WRAP_UP_ENABLED: false
+  efCommonVars_WRAPUP_TIME: "60"
+  efCommonVars_DEFAULT_ROOM_NAME: CC
+  efCommonVars_DEFAULT_ROOM_DESCRIPTION: Contact Center Room
+  efCommonVars_DEFAULT_ROOM_LABEL: CC
+  efCommonVars_ROOM_IS_USER_ID: false
+  efCommonVars_CONVERSATION_SEARCH_WINDOW_HRS: "24"
+  efCommonVars_TZ: UTC
+  efCommonVars_MASK_ATTRIBUTES_PATH: /sensitive.js
+  efCommonVars_LOGGING_CONFIG: /logback/logback-spring.xml
+  efCommonVars_IS_ENABLED_2FA: "false"
+  efCommonVars_CHANNEL_2FA: "app"
+  efCommonVars_TWILIO_SID: ""
+  efCommonVars_TWILIO_VERIFY_SID: ""
+  efCommonVars_TWILIO_AUTH_TOKEN: ""
+  efCommonVars_TOPIC_CONCURRENCY_MIN: "2"
+  efCommonVars_TOPIC_CONCURRENCY_MAX: "6"
+  efCommonVars_MEMORY_THRESHOLD_MBS: 1000
+
+# Change the below given paragraph when deploying an offline solution to pick the images from 
+#  -- Local Repo running inside the Kubernetes Engine
+#  -- Customer's own Repo requiring all images to be sorted locally 
+#
+# imageCredentials:
+# imageCredentials.registry: provides the registry URL
+# imageCredentials.username: username to use
+# imageCredentials.password: Password for the user
+# imageCredentials.email: an email address for the user
+#
+clusterDomain: cluster.local
+
+
+imageCredentials:
+  registry: gitimages.expertflow.com
+  username: efcx
+  password: RecRpsuH34yqp56YRFUb
+  email: devops@expertflow.com
+
+##############################360-connector##############################
+connect360:
+   enabled: true
+   replicaCount: 1
+   image:
+      repository: cim/360-connector
+      tag: 4.9.5
+   efConnectionVars: true
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-360c-8080"
+        containerPort: 8080
+   extraEnvVars:
+      - name: TZ
+        value: "{{ .Values.global.efCommonVars_TZ }}"
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG }}'
+      - name: MASKING_LAYOUT_CLASS
+        value: '{{ .Values.global.efCommonVars_MASKING_LAYOUT_CLASS }}'
+      - name: CCM_URL
+        value: "http://{{ .Values.global.efCxReleaseName  }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.connector360.utility.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8080
+      portName: "http-360c-8080"
+      targetPort: "http-360c-8080"
+   ingress: { enabled: false }
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+           name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+
+
+##############################facebook-connector##############################
+facebook-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/facebook-connector
+      tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: true 
+   containerPorts:
+      - name: "http-fb-co-8080"
+        containerPort: 8080
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: CCM_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.connector.facebookconnector.utility.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8080
+      portName: "http-fb-co-8080"
+      targetPort: "http-fb-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+
+
+##############################instagram-connector##############################
+instagram-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/instagram-connector
+      tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: false 
+   containerPorts:
+      - name: "http-in-co-8080"
+        containerPort: 8080
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: CCM_URL
+        value: "http://{{ .Values.global.efCxReleaseName  }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.connector.instagramconnector.utils.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8080
+      portName: "http-in-co-8080"
+      targetPort: "http-in-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+
+
+##############################smpp-connector##############################
+smpp-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cti/hc_smpp_connector
+      tag: 4.9.4
+   efConnectionVars: true
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-sm-cn-8115"
+        containerPort: 8115
+   extraEnvVars:
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: CCM_CONFIG_URL
+        value: "https://{{ .Values.global.ingressRouter  }}/ccm/channel-connectors/configurations/"
+      - name: SPRING_PORT
+        value: "8115"
+      - name: SERVICE_IDENTIFIER
+        value: "195"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.sms.utils.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8115
+      portName: "http-sm-cn-8115"
+      targetPort: "http-sm-cn-8115"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+##############################telegram-connector##############################
+telegram-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/telegram-connector
+      tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-te-co-8664"
+        containerPort: 8664
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: CHANNEL_MANAGER_BASE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.spring.util.MaskingPatternLayout"
+      - name: LOG_LEVEL
+        value: "INFO"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8664
+      portName: "http-te-co-8664"
+      targetPort: "http-te-co-8664"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+
+##############################twilio-connector##############################
+twilio-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/twilio-connector
+      tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-tw-co-8085"
+        containerPort: 8085
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: CCM_FQDN
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.twilio.connector.util.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8085
+      portName: "http-tw-co-8085"
+      targetPort: "http-tw-co-8085"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+
+##############################twitter-connector##############################
+twitter-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/twitter-connector
+      tag: 4.9.4
+   efConnectionVars: true
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-tt-co-8080"
+        containerPort: 8080
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: CCM_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8080
+      portName: "http-tt-co-8080"
+      targetPort: "http-tt-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+
+##############################viber-connector##############################
+viber-connector:
+   enabled: true
+   replicaCount: 1
+   image:       
+      repository: cim/viber-connector
+      tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-vb-co-8080"
+        containerPort: 8080
+   extraEnvVars:
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: CCM_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: FILE_ENGINE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.ef.connector.utils.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 8080
+      portName: "http-vb-co-8080"
+      targetPort: "http-vb-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+            name: ef-logback-cm
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+
+##############################email-connector##############################
+email-connector:
+   enabled: true
+   replicaCount: 1
+   image:
+     repository: cim/email-connector
+     tag: 4.9.4
+   efConnectionVars: true
+   efEnvironmentVars: false
+   containerPorts:
+     - name: "http-em-co-8080"
+       containerPort: 8080
+   extraEnvVars:
+     - name: TZ
+       value: '{{ .Values.global.efCommonVars_TZ }}'
+     - name: CCM_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+     - name: FILE_ENGINE_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+     - name: SCHEDULER_FIXED_RATE_IN_MS
+       value: "60000"
+   siteEnvVars: []
+   service:
+     enabled: true
+     port: 8080
+     portName: "http-em-co-8080"
+     targetPort: "http-em-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+
+##############################whatsapp-connector##############################
+whatsapp-connector:
+   enabled: true
+   replicaCount: 1
+   image:
+     repository: cim/whatsapp-connector
+     tag: 4.9.4
+   efConnectionVars: false
+   efEnvironmentVars: false
+   containerPorts:
+     - name: "http-wa-co-8080"
+       containerPort: 8080
+   extraEnvVars:
+     - name: TZ
+       value: '{{ .Values.global.efCommonVars_TZ }}'
+     - name: LOGGING_CONFIG
+       value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+     - name: CCM_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+     - name: FILE_ENGINE_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+     - name: MASKING_LAYOUT_CLASS
+       value: "com.ef.connector.whatsappconnector.utils.MaskingPatternLayout"
+   siteEnvVars: []
+   service:
+     enabled: true
+     port: 8080
+     portName: "http-wa-co-8080"
+     targetPort: "http-wa-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+     - name: ef-logback
+       configMap:
+         name: ef-logback-cm
+   extraVolumeMounts:
+     - name: ef-logback
+       mountPath: /logback
+
+
+##############################microsoft-exchange-email-connector##############################
+ms-email-connector:
+   enabled: true
+   replicaCount: 1
+   image:
+     repository: cim/ms-exchange-email-connector
+     tag: 4.9.4
+   efConnectionVars: true
+   efEnvironmentVars: false
+   containerPorts:
+     - name: "http-ex-co-8080"
+       containerPort: 8080
+   extraEnvVars:
+     - name: TZ
+       value: '{{ .Values.global.efCommonVars_TZ }}'
+     - name: LOGGING_CONFIG
+       value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+     - name: CCM_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+     - name: FILE_ENGINE_URL
+       value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+     - name: MASKING_LAYOUT_CLASS
+       value: "com.ef.connector.msexchangeemailconnector.utils.MaskingPatternLayout"
+     - name: SCHEDULER_FIXED_RATE_IN_MS
+       value: "60000"
+   siteEnvVars: []
+   service:
+     enabled: true
+     port: 8080
+     portName: "http-ex-co-8080"
+     targetPort: "http-ex-co-8080"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+     - name: ef-logback
+       configMap:
+         name: ef-logback-cm
+   extraVolumeMounts:
+     - name: ef-logback
+       mountPath: /logback
+
+
+##############################################youtube-connector##############################################
+youtube-connector:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: cim/youtube-connector
+    tag: 4.9.4
+  efConnectionVars: true
+  efEnvironmentVars: false
+  containerPorts:
+    - name: http-yt-co-8080
+      containerPort: 8080
+  extraEnvVars:
+    - name: TZ
+      value: "{{ .Values.global.efCommonVars_TZ }}"
+    - name: CCM_URL
+      value: http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081
+    - name: FILE_ENGINE_URL
+      value: http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080
+    - name: SCHEDULER_FIXED_RATE_IN_MS
+      value: "90000"
+    - name: DAYS_TO_KEEP_TOP_LEVEL_COMMENTS
+      value: "7"
+  siteEnvVars: []
+  service:
+    enabled: true
+    port: 8080
+    portName: http-yt-co-8080
+    targetPort: http-yt-co-8080
+  ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+
+
+##############################linkedin-connector##############################
+linkedin-connector:
+   enabled: true
+   replicaCount: 1
+   image:
+      repository: project_dev/linkedinconnector
+      tag: 4.9.3
+   efConnectionVars: false
+   efEnvironmentVars: false
+   containerPorts:
+      - name: "http-li-9001"
+        containerPort: 9001
+   extraEnvVars:
+      - name: http.connect.timeout.sec
+        value: "500000"
+      - name: http.read.timeout.sec
+        value: "1000000"
+      - name: http.request.timeout.sec
+        value: "10000000"
+      - name: enable.ssl.env
+        value: "false"
+      - name: linkedin.scheduler.fixed-rate
+        value: "600000"
+      - name: LINKEDIN_CIM_SERVICE_ID
+        value: "2001"
+      - name: TZ
+        value: '{{ .Values.global.efCommonVars_TZ }}'
+      - name: LOGGING_CONFIG
+        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+      - name: LINKEDIN_CIM_SERVICE_URL
+        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+      - name: MASKING_LAYOUT_CLASS
+        value: "com.linkedin.connector.logging.MaskingPatternLayout"
+      - name: DATABASE_URL
+        value: jdbc:postgresql://ef-postgresql.ef-external.svc:5432/linkedinmetadata?sslmode=verify-ca&sslrootcert=/postgresql/ca.crt
+      - name: DATABASE_USERNAME
+        value: "sa"
+      - name: DATABASE_PASSWORD
+        value: "Expertflow123"
+   siteEnvVars: []
+   service:
+      enabled: true
+      port: 9001
+      portName: "http-li-9001"
+      targetPort: "http-li-9001"
+   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   extraVolumes:
+      - name: ef-logback
+        configMap:
+          name: ef-logback-cm
+      - name: ef-postgresql-crt-vol
+        secret:
+          secretName: ef-postgresql-crt
+   extraVolumeMounts:
+      - name: ef-logback
+        mountPath: /logback
+      - name: ef-postgresql-crt-vol
+        mountPath: /postgresql

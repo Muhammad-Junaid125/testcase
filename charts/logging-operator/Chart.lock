@@ -1,0 +1,6 @@
+dependencies:
+- name: crds
+  repository: ""
+  version: 0.0.0
+digest: sha256:c08bb774199c32fcc86d56d9607f43daa36a739e4b88bd8efe2825fb689f0677
+generated: "2025-01-06T16:24:41.284836+05:00"

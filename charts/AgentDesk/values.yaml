@@ -19,7 +19,7 @@
 
 
 global:
-  ingressRouter: "expertflow.ef.com"
+  ingressRouter: "devops234.ef.com"
   ingressCertName: "ef-ingress-tls-secret"
   ingressClassName: "nginx"
   efCxReleaseName: "ef-cx"
@@ -50,19 +50,11 @@ global:
 
   ## EF-External related Service URIs -- not used atm. 
   efGrafanaDatasourceSecret: "ef-grafana-datasource-secret"
-  efGrafanaSupervisorDashboardConfigMap: "ef-grafana-supervisor-dashboard"
-  efGrafanaSupervisorDashboardFilename: "Supervisor_Dashboard_CIM.json"
-  efGrafanaAgentDashboardConfigMap: "ef-grafana-agent-dashboard"
-  efGrafanaAgentDashboardFilename: "Agent_Dashboard_CIM.json"
-  efGrafanaAgentTeamsDashboardConfigMap: "ef-grafana-agent-teams-dashboard"
-  efGrafanaAgentTeamsDashboardFilename: "agent_teams_dashboard.json"
-  efGrafanaAgentPerformanceDashboardConfigMap: "ef-grafana-agent-performance-dashboard"
-  efGrafanaAgentPerformanceDashboardFilename: "agent_performance_dashboard.json"
-  efGrafanaSocialMediaPerformanceTrendDashboardConfigMap: "ef-grafana-social-media-performance-trend-dashboard"
-  efGrafanaSocialMediaPerformanceTrendDashboardFilename: "social_media_performance_trend_dashboard.json"
-  efGrafanaTeamStatisticsDashboardConfigMap: "ef-grafana-team-statistics-dashboard"
-  efGrafanaTeamStatisticsDashboardFilename: "team_statistics_dashboard.json"
-  efGrafanaDashboardProviderCM: "ef-grafana-dashboard-provider-cm"
+  efGrafanaSupervisorDashboardConfigMap: "ef-grafana-supervisor-dashboard-mysql"
+  efGrafanaSupervisorDashboardFilename: "Supervisor_Dashboard_CIM-mysql.json"
+  efGrafanaAgentDashboardConfigMap: "ef-grafana-agent-dashboard-mysql"
+  efGrafanaAgentDashboardFilename: "Agent_Dashboard_CIM-mysql.json"
+  efGrafanaDashboardDroviderCM: "ef-grafana-dashboard-provider-cm"
   efGrafanaIniCM: "ef-grafana-ini-cm"
 
 
@@ -73,9 +65,9 @@ clusterDomain: cluster.local
 unified-agent:
    enabled: true
    replicaCount: 1
-   image:
-      repository: cim/unified-agent/build
-      tag: "5.0.1_f-CIM-32387"
+   image:       
+      repository: cim/unified-agent
+      tag: 4.9.4
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -192,7 +184,7 @@ unified-agent:
         value: "https://{{ .Values.global.ingressRouter  }}/secure-link"
       - name: finesseURLForAgent
         value: "https://122.129.75.138:8445"
-      - name: isSecureLinkEnabled
+      - name: ENABLE_SECURE_LINK
         value: "false"
       - name: Enable_Voice_Events_For_CRM
         value: "false"
@@ -210,18 +202,7 @@ unified-agent:
         value: "5000"
       - name: SOCKET_TIMEOUT
         value: "20000"
-      - name: IS_WEBRTC_VIDEO_ENABLED
-        value: "false"
-      - name: WEBRTC_SERVICE_IDENTIFIER
-        value: "00000"
-      - name: isSpellCheckEnabled
-        value: "true"
-      - name: isKnowledgeBaseEnabled
-        value: false
-      - name: KNOWLEDGE_BASE_URL
-        value: ""
    siteEnvVars: []
-   configKeys: []
    service:
       enabled: true
       port: 80
@@ -260,7 +241,7 @@ grafana:
     pullPolicy: IfNotPresent
   dashboardsProvider:
     enabled: true
-    configMapName: '{{ .Values.global.efGrafanaDashboardProviderCM }}'
+    configMapName: '{{ .Values.global.efGrafanaDashboardDroviderCM }}'
   dashboardsConfigMaps:
     - configMapName: '{{ .Values.global.efGrafanaSupervisorDashboardConfigMap }}'
       folderName: default
@@ -268,18 +249,6 @@ grafana:
     - configMapName: '{{ .Values.global.efGrafanaAgentDashboardConfigMap }}'
       folderName: default
       fileName: '{{ .Values.global.efGrafanaAgentDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaAgentTeamsDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaAgentTeamsDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaAgentPerformanceDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaSocialMediaPerformanceTrendDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaSocialMediaPerformanceTrendDashboardFilename }}'
-    - configMapName: '{{ .Values.global.efGrafanaTeamStatisticsDashboardConfigMap }}'
-      folderName: default
-      fileName: '{{ .Values.global.efGrafanaTeamStatisticsDashboardFilename }}'
   datasources:
     secretName: "{{ .Values.global.efGrafanaDatasourceSecret }}"
   admin:
@@ -314,9 +283,8 @@ grafana:
     create: true
     name: ""
     automountServiceAccountToken: true
-  hostAliases:
-    - ip: "<IP>"
+  hostAliases: 
+    - ip: "192.168.2.234"
       hostnames:
-        - "{{ .Values.global.ingressRouter }}"
+        - "devops234.ef.com"
   ingress: { enabled: false } # Disabled in favor of APISIX
-

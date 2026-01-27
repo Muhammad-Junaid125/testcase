@@ -1,4 +1,4 @@
-name: Release Helm Charts with Changelog
+name: Release Charts with Per-Chart Changelog
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
 
     steps:
       # -----------------------------
-      # Checkout full git history
+      # Checkout full history
       # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,58 +25,62 @@ jobs:
           fetch-depth: 0
 
       # -----------------------------
-      # Configure Git identity
+      # Git identity (required)
       # -----------------------------
       - name: Configure Git
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
 
       # -----------------------------
-      # Install Helm
+      # Install tools
       # -----------------------------
       - name: Install Helm
         uses: azure/setup-helm@v3
 
+      - name: Install changelog tool
+        run: npm install -g git-cliff
+
       # -----------------------------
-      # Add Helm repositories
+      # Detect changed charts
       # -----------------------------
-      - name: Add Helm repos
+      - name: Detect changed charts
+        id: charts
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^charts/' | cut -d/ -f2 | sort -u || true)
+          echo "charts=$CHANGED" >> $GITHUB_OUTPUT
 
       # -----------------------------
-      # Generate CHANGELOG.md
-      # Uses latest tag automatically
+      # Generate per-chart changelog
       # -----------------------------
-      - name: Generate CHANGELOG.md
-        uses: requarks/changelog-action@v1
-        with:
-          #tag: agent-desk-5.0.3
-          token: ${{ secrets.GITHUB_TOKEN }}
-          writeToFile: true
-          includeInvalidCommits: true
-          excludeTypes: build,docs,style,other
-
-      # -----------------------------
-      # Copy changelog into Helm chart
-      # -----------------------------
-      - name: Copy CHANGELOG into Helm chart
+      - name: Generate changelogs per chart
+        if: steps.charts.outputs.charts != ''
         run: |
-          cp CHANGELOG.md charts/AgentDesk/CHANGELOG.md
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            echo "Processing chart: $chart"
+
+            VERSION=$(yq '.version' charts/$chart/Chart.yaml)
+            TAG="$chart-$VERSION"
+
+            PREV_TAG=$(git tag --list "$chart-*" --sort=-v:refname | grep -v "$TAG" | head -n 1 || true)
+
+            if [ -n "$PREV_TAG" ]; then
+              git cliff "$PREV_TAG..HEAD" \
+                --output charts/$chart/CHANGELOG.md
+            else
+              git cliff \
+                --output charts/$chart/CHANGELOG.md
+            fi
+          done
 
       # -----------------------------
-      # Commit CHANGELOG files
+      # Commit changelogs
       # -----------------------------
-      - name: Commit CHANGELOG.md
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          branch: ${{ github.ref_name }}
-          commit_message: "docs(changelog): update changelog [skip ci]"
-          file_pattern: |
-            CHANGELOG.md
-            charts/AgentDesk/CHANGELOG.md
+      - name: Commit changelogs
+        run: |
+          git add charts/*/CHANGELOG.md
+          git commit -m "docs(changelog): update helm chart changelogs" || echo "Nothing to commit"
+          git push
 
       # -----------------------------
       # Release Helm charts

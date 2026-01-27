@@ -1,0 +1,1934 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+global:
+  ingressRouter: "devops234.ef.com"
+  ingressClassName: "nginx"
+  ingressTlsCertName: "ef-ingress-tls-secret"
+  # The OPA policy is defined here so it can be easily applied to any route.
+  policies:
+    opa:
+      restrictivePolicy: |
+        package apisix.authz
+
+        import rego.v1
+
+        default allow := false
+
+        allow if {
+            method_allowed
+            jwt_claims_valid
+        }
+
+        method_allowed if { input.request.method == "GET" }
+        method_allowed if { input.request.method == "POST" }
+
+        jwt_claims_valid if {
+            startswith(input.request.headers.authorization, "Bearer ")
+            token := split(input.request.headers.authorization, " ")[1]
+            [is_valid, header, payload] := io.jwt.decode_verify(token, { "cert": "" })
+            is_valid
+
+            allowed_roles := {"agent", "supervisor"}
+            some role in payload.realm_access.roles
+            role in allowed_roles
+        }
+
+  # e.g.
+  # imagePullSecrets:
+  #   - my-registry-secrets
+  #   - other-registry-secrets
+  # -- Global Docker registry secret names as an array
+  imagePullSecrets: []
+
+image:
+  # -- Apache APISIX image repository
+  repository: apache/apisix
+  # -- Apache APISIX image pull policy
+  pullPolicy: IfNotPresent
+  # -- Apache APISIX image tag
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: 3.11.0-debian
+
+# -- set false to use `Deployment`, set true to use `DaemonSet`
+useDaemonSet: false
+# -- if useDaemonSet is true or autoscaling.enabled is true, replicaCount not become effective
+replicaCount: 1
+
+# -- Set [priorityClassName](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#pod-priority) for Apache APISIX pods
+priorityClassName: ""
+# -- Annotations to add to each pod
+podAnnotations: {}
+# -- Set the securityContext for Apache APISIX pods
+podSecurityContext: {}
+  # fsGroup: 2000
+# -- Set the securityContext for Apache APISIX container
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# -- See https://kubernetes.io/docs/tasks/run-application/configure-pdb/ for more details
+podDisruptionBudget:
+  # -- Enable or disable podDisruptionBudget
+  enabled: false
+  # -- Set the `minAvailable` of podDisruptionBudget. You can specify only one of `maxUnavailable` and `minAvailable` in a single PodDisruptionBudget.
+  # See [Specifying a Disruption Budget for your Application](https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget)
+  # for more details
+  minAvailable: 90%
+  # -- Set the maxUnavailable of podDisruptionBudget
+  maxUnavailable: 1
+
+# -- Set pod resource requests & limits
+resources: 
+  requests:
+    cpu: "256m"
+    memory: "512Mi"
+  limits:
+    cpu: "512m"
+    memory: "1Gi"
+
+  # -- Use the host's network namespace
+
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+hostNetwork: false
+
+# -- Node labels for Apache APISIX pod assignment
+nodeSelector: {}
+# -- List of node taints to tolerate
+tolerations: []
+# -- Set affinity for Apache APISIX deploy
+affinity: {}
+# -- Topology Spread Constraints for pod assignment spread across your cluster among failure-domains
+# ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+topologySpreadConstraints: []
+
+# -- timezone is the timezone where apisix uses.
+# For example: "UTC" or "Asia/Shanghai"
+# This value will be set on apisix container's environment variable TZ.
+# You may need to set the timezone to be consistent with your local time zone,
+# otherwise the apisix's logs may used to retrieve event maybe in wrong timezone.
+timezone: ""
+
+# -- extraEnvVars An array to add extra env vars
+# e.g:
+# extraEnvVars:
+#   - name: FOO
+#     value: "bar"
+#   - name: FOO2
+#     valueFrom:
+#       secretKeyRef:
+#         name: SECRET_NAME
+#         key: KEY
+extraEnvVars: []
+
+updateStrategy: {}
+  # type: RollingUpdate
+
+# -- Additional Kubernetes resources to deploy with the release.
+extraDeploy: []
+
+# -- Additional `volume`, See [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) for the detail.
+extraVolumes: 
+  - name: apisix-cache-volume
+    emptyDir:
+     sizeLimit: 2Gi
+
+# - name: extras
+#   emptyDir: {}
+
+# -- Additional `volume`, See [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) for the detail.
+extraVolumeMounts: 
+  - name: apisix-cache-volume
+    mountPath: /data/cache/one
+# - name: extras
+#   mountPath: /usr/share/extras
+#   readOnly: true
+
+# -- Additional `initContainers`, See [Kubernetes initContainers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) for the detail.
+extraInitContainers: []
+# - name: init-myservice
+#   image: busybox:1.28
+#   command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+
+# -- Additional `containers`, See [Kubernetes containers](https://kubernetes.io/docs/concepts/containers/) for the detail.
+extraContainers: []
+
+initContainer:
+  # -- Init container image
+  image: busybox
+  # -- Init container tag
+  tag: 1.28
+
+autoscaling:
+  enabled: false
+  # -- HPA version, the value is "v2" or "v2beta1", default "v2"
+  version: v2
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+rbac:
+  create: true
+
+service:
+  # -- Apache APISIX service type for user access itself
+  type: NodePort
+  # -- Setting how the Service route external traffic
+  # If you want to keep the client source IP, you can set this to Local.
+
+  # ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  externalTrafficPolicy: Cluster
+  # type: LoadBalancer
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
+  externalIPs: []
+  # -- Apache APISIX service settings for http
+  http:
+    enabled: true
+    servicePort: 80
+    containerPort: 9080
+    # -- Support multiple http ports, See [Configuration](https://github.com/apache/apisix/blob/0bc65ea9acd726f79f80ae0abd8f50b7eb172e3d/conf/config-default.yaml#L24)
+    additionalContainerPorts: []
+      # - port: 9081
+      #   enable_http2: true          # If not set, the default value is `false`.
+      # - ip: 127.0.0.2               # Specific IP, If not set, the default value is `0.0.0.0`.
+      #   port: 9082
+      #   enable_http2: true
+  # -- Apache APISIX service settings for tls
+  tls:
+    servicePort: 443
+    # nodePort: 4443
+
+  # -- Apache APISIX service settings for stream. L4 proxy (TCP/UDP)
+  stream:
+    enabled: false
+    tcp: []
+    udp: []
+  #  - secretName: apisix-tls
+  #    hosts:
+  #      - chart-example.local
+  # -- Override default labels assigned to Apache APISIX gateway resources
+  labelsOverride: {}
+  # labelsOverride:
+  #   app.kubernetes.io/name: "{{ .Release.Name }}"
+  #   app.kubernetes.io/instance: '{{ include "apisix.name" . }}'
+
+# -- Using ingress access Apache APISIX service
+ingress:
+  enabled: true
+  className: "{{ .Values.global.ingressClassName }}"
+  # -- (number) Service port to send traffic. Defaults to `service.http.servicePort`.
+  servicePort:
+  # -- Ingress annotations
+  annotations: 
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "6m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: "{{ .Values.global.ingressRouter }}"
+      paths:
+        - /
+  tls: 
+    - hosts:
+      - "{{ .Values.global.ingressRouter }}"
+      secretName: "{{ .Values.global.ingressTlsCertName }}"
+
+control:
+  # -- Enable Control API
+  enabled: true
+  service:
+    # -- Control annotations
+    annotations: {}
+    # -- Control service type
+    type: ClusterIP
+    # loadBalancerIP: a.b.c.d
+    # loadBalancerSourceRanges:
+    #   - "143.231.0.0/16"
+    # -- IPs for which nodes in the cluster will also accept traffic for the servic
+    externalIPs: []
+
+    # -- NodePort (only if control.service.type is NodePort)
+    # nodePort: 32000
+
+    # -- which ip to listen on for Apache APISIX Control API
+    ip: "127.0.0.1"
+    # -- which port to use for Apache APISIX Control API
+    port: 9090
+    # -- Service port to use for Apache APISIX Control API
+    servicePort: 9090
+  # -- Using ingress access Apache APISIX Control service
+  ingress:
+    enabled: false
+    # -- Ingress annotations
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- Ingress Class Name
+    # className: "nginx"
+    hosts:
+      - host: apisix-control.local
+        paths:
+          - "/*"
+    tls: []
+  #  - secretName: apisix-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- Observability configuration.
+metrics:
+  serviceMonitor:
+    # -- Enable or disable Apache APISIX serviceMonitor
+    enabled: false
+    # -- namespace where the serviceMonitor is deployed, by default, it is the same as the namespace of the apisix
+    namespace: ""
+    # -- name of the serviceMonitor, by default, it is the same as the apisix fullname
+    name: ""
+    # -- interval at which metrics should be scraped
+    interval: 15s
+    # -- @param serviceMonitor.labels ServiceMonitor extra labels
+    labels: {}
+    # -- @param serviceMonitor.annotations ServiceMonitor annotations
+    annotations: {}
+
+apisix:
+  # -- Enable nginx IPv6 resolver
+  enableIPv6: true
+  enableHTTP2: true
+
+  # -- Whether the APISIX version number should be shown in Server header
+  enableServerTokens: true
+
+  # -- Use Pod metadata.uid as the APISIX id.
+  setIDFromPodUID: false
+
+  # -- Whether to add a custom lua module
+  luaModuleHook:
+    enabled: false
+    # -- extend lua_package_path to load third party code
+    luaPath: ""
+    # -- the hook module which will be used to inject third party code into APISIX
+    # use the lua require style like: "module.say_hello"
+    hookPoint: ""
+    # -- configmap that stores the codes
+    configMapRef:
+      # -- Name of the ConfigMap where the lua module codes store
+      name: ""
+      # mounts decides how to mount the codes to the container.
+      mounts:
+        # -- Name of the ConfigMap key, for setting the mapping relationship between ConfigMap key and the lua module code path.
+        - key: ""
+        # -- Filepath of the plugin code, for setting the mapping relationship between ConfigMap key and the lua module code path.
+          path: ""
+
+  ssl:
+    enabled: false
+    containerPort: 9443
+    # -- Support multiple https ports, See [Configuration](https://github.com/apache/apisix/blob/0bc65ea9acd726f79f80ae0abd8f50b7eb172e3d/conf/config-default.yaml#L99)
+    additionalContainerPorts: []
+      # - ip: 127.0.0.3           # Specific IP, If not set, the default value is `0.0.0.0`.
+      #   port: 9445
+      #   enable_http3: true
+    # -- Specifies the name of Secret contains trusted CA certificates in the PEM format used to verify the certificate when APISIX needs to do SSL/TLS handshaking with external services (e.g. etcd)
+    existingCASecret: ""
+    # -- Filename be used in the apisix.ssl.existingCASecret
+    certCAFilename: ""
+    enableHTTP3: false
+    # -- TLS protocols allowed to use.
+    sslProtocols: "TLSv1.2 TLSv1.3"
+    # -- Define SNI to fallback if none is presented by client
+    fallbackSNI: ""
+
+  router:
+    # -- Defines how apisix handles routing:
+    # - radixtree_uri: match route by uri(base on radixtree)
+    # - radixtree_host_uri: match route by host + uri(base on radixtree)
+    # - radixtree_uri_with_parameter: match route by uri with parameters
+    http: radixtree_host_uri
+
+  fullCustomConfig:
+    # -- Enable full customized config.yaml
+    enabled: true
+    # -- If apisix.fullCustomConfig.enabled is true, full customized config.yaml.
+    # Please note that other settings about APISIX config will be ignored
+    config:
+      apisix:
+        node_listen:
+          - 9080
+        enable_heartbeat: true
+        enable_admin: false
+        enable_admin_cors: true   # harmless when admin is off
+        enable_control: false
+        enable_debug: false
+        enable_dev_mode: false
+        enable_reuseport: true    # spread load across workers
+        enable_ipv6: true
+        enable_http2: true
+        enable_server_tokens: false  # hide version for slight perf gain
+        proxy_cache:
+          cache_ttl: 60s
+          zones:
+            - name: disk_cache_one
+              memory_size: 100m
+              disk_size: 2G
+              disk_path: "/data/cache/one"
+              cache_levels: "1:2"
+        proxy_mode: http
+        dns_resolver_valid: 30
+        resolver_timeout: 5
+        router:
+          http: radixtree_host_uri
+      nginx_config:
+        error_log: "/dev/stderr"
+        error_log_level: "warn"
+        worker_processes: "auto"        # one per CPU core
+        enable_cpu_affinity: true
+        worker_rlimit_nofile: 200000    # allow many open files
+        event:
+          worker_connections: 16384     # many concurrent connections
+        envs:
+          - KUBERNETES_SERVICE_HOST
+          - KUBERNETES_SERVICE_PORT
+        http:
+          enable_access_log: true
+          access_log: "/dev/stdout"
+          access_log_format: '$remote_addr - $remote_user [$time_local] $http_host \"$request\" $status $body_bytes_sent $request_time \"$http_referer\" \"$http_user_agent\" $upstream_addr $upstream_status $upstream_response_time \"$upstream_scheme://$upstream_host$upstream_uri\"'
+          access_log_format_escape: default
+          keepalive_timeout: "60s"
+          client_header_timeout: 60s
+          client_body_timeout: 60s
+          send_timeout: 10s
+          underscores_in_headers: "on"
+          real_ip_header: "X-Real-IP"
+          real_ip_from:
+            - 127.0.0.1
+            - "unix:"
+      discovery:
+        kubernetes: {}
+      deployment:
+        role: data_plane
+        role_data_plane:
+          config_provider: yaml
+        admin:
+          allow_admin:
+            - 127.0.0.1/24
+          admin_listen:
+            ip: 0.0.0.0
+            port: 9180
+          admin_key:
+            - name: "admin"
+              key: "edd1c9f034335f136f87ad84b625c8f1"
+              role: admin
+            - name: "viewer"
+              key: "4054f7cf07e344346cd3f287985e76a2"
+              role: viewer
+
+
+  deployment:
+    # -- Apache APISIX deployment mode
+    # Optional: traditional, decoupled, standalone
+    #
+    # ref: https://apisix.apache.org/docs/apisix/deployment-modes/
+    mode: standalone
+
+    # -- Deployment role
+    # Optional: traditional, data_plane, control_plane
+    #
+    # ref: https://apisix.apache.org/docs/apisix/deployment-modes/
+    role: "data_plane"
+
+  admin:
+    # -- Enable Admin API
+    enabled: false
+    # -- admin service type
+    type: ClusterIP
+    # loadBalancerIP: a.b.c.d
+    # loadBalancerSourceRanges:
+    #   - "143.231.0.0/16"
+    # -- IPs for which nodes in the cluster will also accept traffic for the servic
+    externalIPs: []
+    # -- which ip to listen on for Apache APISIX admin API. Set to `"[::]"` when on IPv6 single stack
+    ip: 0.0.0.0
+    # -- which port to use for Apache APISIX admin API
+    port: 9180
+    # -- Service port to use for Apache APISIX admin API
+    servicePort: 9180
+    # -- Admin API support CORS response headers
+    cors: true
+    # -- Admin API credentials
+    credentials:
+      # -- Apache APISIX admin API admin role credentials
+      admin: edd1c9f034335f136f87ad84b625c8f1
+      # -- Apache APISIX admin API viewer role credentials
+      viewer: 4054f7cf07e344346cd3f287985e76a2
+
+      # -- The APISIX Helm chart supports storing user credentials in a secret.
+      # The secret needs to contain two keys, admin and viewer, with their respective values set.
+      secretName: ""
+      # -- Name of the admin role key in the secret, overrides the default key name "admin"
+      secretAdminKey: ""
+      # -- Name of the viewer role key in the secret, overrides the default key name "viewer"
+      secretViewerKey: ""
+
+    allow:
+      # -- The client IP CIDR allowed to access Apache APISIX Admin API service.
+      ipList:
+        - 127.0.0.1/24
+    # -- Using ingress access Apache APISIX admin service
+    ingress:
+      enabled: false
+      # -- Ingress annotations
+      annotations:
+        {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+      hosts:
+        - host: apisix-admin.local
+          paths:
+            - "/apisix"
+      tls: []
+    #  - secretName: apisix-tls
+    #    hosts:
+    #      - chart-example.local
+
+  nginx:
+    workerRlimitNofile: "20480"
+    workerConnections: "10620"
+    workerProcesses: auto
+    enableCPUAffinity: true
+    # -- Timeout during which a keep-alive client connection will stay open on the server side.
+    keepaliveTimeout: 60s
+    envs: []
+    #  - KUBERNETES_SERVICE_HOST: "kubernetes.default.svc.cluster.local"
+    #  - KUBERNETES_SERVICE_PORT: "443"
+    # access log and error log configuration
+    logs:
+      # -- Enable access log or not, default true
+      enableAccessLog: true
+      # -- Access log path
+      accessLog: "/dev/stdout"
+      # -- Access log format
+      accessLogFormat: '$remote_addr - $remote_user [$time_local] $http_host \"$request\" $status $body_bytes_sent $request_time \"$http_referer\" \"$http_user_agent\" $upstream_addr $upstream_status $upstream_response_time \"$upstream_scheme://$upstream_host$upstream_uri\"'
+      # -- Allows setting json or default characters escaping in variables
+      accessLogFormatEscape: default
+      # -- Error log path
+      errorLog: "/dev/stderr"
+      # -- Error log level
+      errorLogLevel: "warn"
+    # -- Custom configuration snippet.
+    configurationSnippet:
+      main: |
+
+      httpStart: |
+
+      httpEnd: |
+
+      httpSrv: |
+
+      httpAdmin: |
+
+      stream: |
+
+    # -- Add custom [lua_shared_dict](https://github.com/openresty/lua-nginx-module#toc88) settings,
+    # click [here](https://github.com/apache/apisix-helm-chart/blob/master/charts/apisix/values.yaml#L27-L30) to learn the format of a shared dict
+    customLuaSharedDicts: []
+      # - name: foo
+      #   size: 10k
+      # - name: bar
+      #   size: 1m
+
+  discovery:
+    # -- Enable or disable Apache APISIX integration service discovery
+    enabled: false
+    # -- Registry is the same to the one in APISIX [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml#L281),
+    # and refer to such file for more setting details. also refer to [this documentation for integration service discovery](https://apisix.apache.org/docs/apisix/discovery)
+    registry: {}
+      # Integration service discovery registry. E.g eureka\dns\nacos\consul_kv
+      # reference:
+      # https://apisix.apache.org/docs/apisix/discovery/#configuration-for-eureka
+      # https://apisix.apache.org/docs/apisix/discovery/dns/#service-discovery-via-dns
+      # https://apisix.apache.org/docs/apisix/discovery/consul_kv/#configuration-for-consul-kv
+      # https://apisix.apache.org/docs/apisix/discovery/nacos/#configuration-for-nacos
+      # https://apisix.apache.org/docs/apisix/discovery/kubernetes/#configuration
+      #
+      # an eureka example:
+      # ```
+      # eureka:
+      #   host:
+      #     - "http://${username}:${password}@${eureka_host1}:${eureka_port1}"
+      #     - "http://${username}:${password}@${eureka_host2}:${eureka_port2}"
+      #   prefix: "/eureka/"
+      #   fetch_interval: 30
+      #   weight: 100
+      #   timeout:
+      #     connect: 2000
+      #     send: 2000
+      #     read: 5000
+      # ```
+      #
+      # the minimal Kubernetes example:
+      # ```
+      # kubernetes: {}
+      # ```
+      #
+      # The prerequisites for the above minimal Kubernetes example:
+      #  1. [Optional] Set `.serviceAccount.create` to `true` to create a dedicated ServiceAccount.
+      #     It is recommended to do so, otherwise the default ServiceAccount "default" will be used.
+      #  2. [Required] Set `.rbac.create` to `true` to create and bind the necessary RBAC resources.
+      #     This grants the ServiceAccount in use to List-Watch Kubernetes Endpoints resources.
+      #  3. [Required] Include the following environment variables in `.nginx.envs` to pass them into
+      #     nginx worker processes (https://nginx.org/en/docs/ngx_core_module.html#env):
+      #      - KUBERNETES_SERVICE_HOST
+      #      - KUBERNETES_SERVICE_PORT
+      #     This is for allowing the default `host` and `port` of `.discovery.registry.kubernetes.service`.
+
+  dns:
+    resolvers:
+      - 127.0.0.1
+      - 172.20.0.10
+      - 114.114.114.114
+      - 223.5.5.5
+      - 1.1.1.1
+      - 8.8.8.8
+    validity: 30
+    timeout: 5
+
+  vault:
+    # -- Enable or disable the vault integration
+    enabled: false
+    # -- The host address where the vault server is running.
+    host: ""
+    # -- HTTP timeout for each request.
+    timeout: 10
+    # -- The generated token from vault instance that can grant access to read data from the vault.
+    token: ""
+    # -- Prefix allows you to better enforcement of policies.
+    prefix: ""
+
+  prometheus:
+    # ref: https://apisix.apache.org/docs/apisix/plugins/prometheus/
+    enabled: false
+    # -- path of the metrics endpoint
+    path: /apisix/prometheus/metrics
+    # -- prefix of the metrics
+    metricPrefix: apisix_
+    # -- container port where the metrics are exposed
+    containerPort: 9091
+
+  # -- Customize the list of APISIX plugins to enable. By default, APISIX's default plugins are automatically used. See [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml)
+  plugins: 
+    - prometheus
+    - proxy-rewrite
+    - cors
+    - openid-connect
+    - limit-count
+    - ip-restriction
+    - response-rewrite
+    - client-control
+    - redirect
+    - real-ip
+    - mocking
+    - error-page-rewrite
+    - opa
+
+  # -- Customize the list of APISIX stream_plugins to enable. By default, APISIX's default stream_plugins are automatically used. See [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml)
+  stream_plugins: []
+
+  # -- Set APISIX plugin attributes, see [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml#L376) for more details
+  pluginAttrs: {}
+
+  extPlugin:
+    # -- Enable External Plugins. See [external plugin](https://apisix.apache.org/docs/apisix/next/external-plugin/)
+    enabled: false
+    # -- the command and its arguements to run as a subprocess
+    cmd: ["/path/to/apisix-plugin-runner/runner", "run"]
+
+  wasm:
+    # -- Enable Wasm Plugins. See [wasm plugin](https://apisix.apache.org/docs/apisix/next/wasm/)
+    enabled: false
+    plugins: []
+
+  # -- customPlugins allows you to mount your own HTTP plugins.
+  customPlugins:
+    # -- Whether to configure some custom plugins
+    enabled: false
+    # -- the lua_path that tells APISIX where it can find plugins,
+    # note the last ';' is required.
+    luaPath: "/opts/custom_plugins/?.lua"
+    plugins:
+      # -- plugin name.
+      - name: "plugin-name"
+        # -- plugin attrs
+        attrs: {}
+        # -- plugin codes can be saved inside configmap object.
+        configMap:
+          # -- name of configmap.
+          name: "configmap-name"
+          # -- since keys in configmap is flat, mountPath allows to define the mount
+          # path, so that plugin codes can be mounted hierarchically.
+          mounts:
+            - key: "the-file-name"
+              path: "mount-path"
+
+# -- external etcd configuration. If etcd.enabled is false, these configuration will be used.
+externalEtcd:
+  # -- if etcd.enabled is false, use external etcd, support multiple address, if your etcd cluster enables TLS, please use https scheme, e.g. https://127.0.0.1:2379.
+  host:
+    # host or ip e.g. http://172.20.128.89:2379
+    - http://etcd.host:2379
+  # -- if etcd.enabled is false, user for external etcd. Set empty to disable authentication
+  user: ""
+  # -- if etcd.enabled is true, use etcd.auth.rbac.rootPassword instead.
+  # -- if etcd.enabled is false and externalEtcd.existingSecret is not empty, the password should store in the corresponding secret
+  # -- if etcd.enabled is false and externalEtcd.existingSecret is empty, externalEtcd.password is the passsword for external etcd.
+  password: ""
+  # -- if externalEtcd.existingSecret is the name of secret containing the external etcd password
+  existingSecret: ""
+  # -- externalEtcd.secretPasswordKey Key inside the secret containing the external etcd password
+  secretPasswordKey: "etcd-root-password"
+
+# -- etcd configuration
+# use the FQDN address or the IP of the etcd
+etcd:
+  # -- install etcd(v3) by default, set false if do not want to install etcd(v3) together
+  enabled: false
+  # -- apisix configurations prefix
+  prefix: "/apisix"
+  # -- Set the timeout value in seconds for subsequent socket operations from apisix to etcd cluster
+  timeout: 30
+
+  # -- if etcd.enabled is true, set more values of bitnami/etcd helm chart
+  auth:
+    rbac:
+      # -- No authentication by default. Switch to enable RBAC authentication
+      create: false
+      # -- root password for etcd. Requires etcd.auth.rbac.create to be true.
+      rootPassword: ""
+    tls:
+      # -- enable etcd client certificate
+      enabled: false
+      # -- name of the secret contains etcd client cert
+      existingSecret: ""
+      # -- etcd client cert filename using in etcd.auth.tls.existingSecret
+      certFilename: ""
+      # -- etcd client cert key filename using in etcd.auth.tls.existingSecret
+      certKeyFilename: ""
+      # -- whether to verify the etcd endpoint certificate when setup a TLS connection to etcd
+      verify: true
+      # -- specify the TLS Server Name Indication extension, the ETCD endpoint hostname will be used when this setting is unset.
+      sni: ""
+
+  # -- ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  # -- added for backward compatibility with old kubernetes versions, as seccompProfile is not supported in kubernetes < 1.19
+  containerSecurityContext:
+    enabled: false
+
+  service:
+    port: 2379
+
+  replicaCount: 3
+
+dashboard:
+  enabled: false
+  config:
+    conf:
+      etcd:
+        # -- Supports defining multiple etcd host addresses for an etcd cluster
+        endpoints:
+          - apisix-etcd:2379
+        # -- apisix configurations prefix
+        prefix: "/apisix"
+        # -- Specifies etcd basic auth username if enable etcd auth
+        username: ~
+        # -- Specifies etcd basic auth password if enable etcd auth
+        password: ~
+
+# -- Ingress controller configuration
+ingress-controller:
+  enabled: false
+  config:
+    apisix:
+      adminAPIVersion: "v3"
+
+
+# =================================================================
+# HOW TO APPLY THE OPA POLICY
+# =================================================================
+# The OPA policy defined in 'global.policies.opa.restrictivePolicy' is not applied to any
+# route by default. To secure a route, manually add the 'opa' plugin block to it.
+# For example:
+#
+#   - id: my-secure-route
+#     ...
+#     plugins:
+#       opa:
+#         policy: '{{ .Values.global.policies.opa.restrictivePolicy }}'
+#       # ... other plugins for the route
+#
+# =================================================================
+
+
+apisixStandalone:
+   # =================================================================
+   # SERVICES (UPSTREAMS)
+   # =================================================================
+   # Each service corresponds to a microservice in your Kubernetes cluster.
+   # The 'service_name' uses the format: <namespace>/<k8s-service-name>:<port-name>
+   #------------------------------------------------------------------
+   services:
+     # From Core Chart (Release: ef-cx, Namespace: expertflow)
+     - id: svc-agent-manager
+       name: svc-agent-manager
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-agent-manager-svc:http-ag-ma-3000"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-bot-framework
+       name: svc-bot-framework
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-bot-framework-svc:http-bot-f-8082"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-ccm
+       name: svc-ccm
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-ccm-svc:http-ccm-8081"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-cim-customer
+       name: svc-cim-customer
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-cim-customer-svc:http-ci-cu-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-conversation-manager
+       name: svc-conversation-manager
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-conversation-manager-svc:http-co-ma-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-conversation-monitor
+       name: svc-conversation-monitor
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-conversation-monitor-svc:http-c-m-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-customer-widget
+       name: svc-customer-widget
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-customer-widget-svc:http-cu-wi-80"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-file-engine
+       name: svc-file-engine
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-file-engine-svc:http-fi-m-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-historical-reports
+       name: svc-historical-reports
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-historical-reports-svc:http-hi-rp-8081"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-license-manager
+       name: svc-license-manager
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-license-manager-svc:http-li-ma-8888"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-realtime-reports
+       name: svc-realtime-reports
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-realtime-reports-svc:http-re-rp-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-routing-engine
+       name: svc-routing-engine
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-routing-engine-svc:http-ro-en-8081"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-team-announcement
+       name: svc-team-announcement
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-team-announcement-svc:ef-team-a-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-unified-admin
+       name: svc-unified-admin
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-unified-admin-svc:http-un-ad-3000"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-web-channel-manager
+       name: svc-web-channel-manager
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-web-channel-manager-svc:http-we-ch-7000"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-business-calendar
+       name: svc-business-calendar
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/ef-cx-business-calendar-svc:http-bu-ca-8443"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+
+     # From Agent-desk Chart (Release: cx-agent-desk, Namespace: expertflow)
+     - id: svc-unified-agent
+       name: svc-unified-agent
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-agent-desk-unified-agent-svc:http-un-ag-80"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-grafana
+       name: svc-grafana
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-agent-desk-grafana-svc:http"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+
+     # From Campaigns Chart (Release: cx-campaigns, Namespace: expertflow)
+     - id: svc-campaigns-backend
+       name: svc-campaigns-backend
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-campaigns-campaigns-backend-svc:http-cp-3000"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-campaign-studio
+       name: svc-campaign-studio
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-campaigns-campaign-studio-svc:http-sb-1880"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-scheduled-activities
+       name: svc-scheduled-activities
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-campaigns-scheduled-activities-svc:http-sc-ac-8894"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+
+     # From Channels Chart (Release: cx-channels, Namespace: expertflow)
+     - id: svc-connect360
+       name: svc-connect360
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-connect360-svc:http-360c-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-facebook-connector
+       name: svc-facebook-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-facebook-connector-svc:http-fb-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-instagram-connector
+       name: svc-instagram-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-instagram-connector-svc:http-in-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-smpp-connector
+       name: svc-smpp-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-smpp-connector-svc:http-sm-cn-8115"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-telegram-connector
+       name: svc-telegram-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-telegram-connector-svc:http-te-co-8664"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-twilio-connector
+       name: svc-twilio-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-twilio-connector-svc:http-tw-co-8085"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-twitter-connector
+       name: svc-twitter-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-twitter-connector-svc:http-tt-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-viber-connector
+       name: svc-viber-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-viber-connector-svc:http-vb-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-email-connector
+       name: svc-email-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-email-connector-svc:http-em-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-whatsapp-connector
+       name: svc-whatsapp-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-whatsapp-connector-svc:http-wa-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-ms-email-connector
+       name: svc-ms-email-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-ms-email-connector-svc:http-ex-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-youtube-connector
+       name: svc-youtube-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-youtube-connector-svc:http-yt-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-linkedin-connector
+       name: svc-linkedin-connector
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-channels-linkedin-connector-svc:http-li-9001"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+
+     # From Eleveo Chart (Release: cx-eleveo, Namespace: expertflow)
+     - id: svc-eleveo-api
+       name: svc-eleveo-api
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-eleveo-eleveo-api-svc:http-el-co-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-eleveo-runner
+       name: svc-eleveo-runner
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-eleveo-eleveo-runner-svc:http-el-ru-8080"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+
+     # From Surveys Chart (Release: cx-surveys, Namespace: expertflow)
+     - id: svc-survey-backend
+       name: svc-survey-backend
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-surveys-survey-backend-svc:http-su-ba-3000"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     - id: svc-survey-studio
+       name: svc-survey-studio
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cx-surveys-survey-studio-svc:http-su-st-1880"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     # Dummy service for the 404 handler route to satisfy schema requirements
+     - id: dummy-service-for-404
+       name: dummy-service-for-404
+       upstream:
+         nodes:
+           "127.0.0.1:1984": 1 # A placeholder node that will not be used
+         type: roundrobin
+
+     # From cisco-sync-service  Chart (Release: cisco-sync-service, Namespace: expertflow)
+     - id: svc-cisco-sync-service
+       name: svc-cisco-sync-service
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/cisco-sync-service:http-q-c-s-3004"
+         scheme: http
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 }
+     
+     # From QM‑backend Chart (Release: qm‑backend, Namespace: expertflow)
+     - id: svc-qm-backend
+       name: svc-qm-backend
+       upstream:
+         discovery_type: kubernetes
+         service_name: "expertflow/qm-qm-backend-svc:http-qmbe3000"
+         scheme: https             # change to https if the pod’s containerPort is TLS
+         type: roundrobin
+         timeout: { connect: 5, send: 10, read: 10 } 
+   # =================================================================
+   # ROUTES
+   # =================================================================
+   # Each route defines a public-facing path and links it to a service.
+   # Plugins for auth, rewrite, cors, etc., are applied here.
+   #------------------------------------------------------------------
+   routes:
+     # --- agent-manager ---
+     - id: ef-cx-agent-manager-login-unsecured
+       uris: ["/agent-manager/agent/login"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-agent-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager/agent/login$", "/agent/login"]
+     - id: ef-cx-agent-manager-socketio-unsecured
+       uris: ["/agent-manager/socket.io/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-agent-manager
+       enable_websocket: true
+       status: 1
+       timeout:
+         connect: 5
+         send: 3600
+         read: 3600
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager/(socket\\.io/.*)", "/$1"]
+     - id: ef-cx-agent-manager-send-sms-otp-unsecured
+       uris: ["/agent-manager/agent/send-sms-otp*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-agent-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager(/agent/send-sms-otp.*)$", "$1"]
+     - id: ef-cx-agent-manager-register-phone-unsecured
+       uris: ["/agent-manager/agent/register-phone*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-agent-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager(/agent/register-phone.*)$", "$1"]
+     - id: ef-cx-agent-manager-validate-otp-unsecured
+       uris: ["/agent-manager/agent/validate-otp*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-agent-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager(/agent/validate-otp.*)$", "$1"]
+     - id: ef-cx-agent-manager-secured
+       uris: ["/agent-manager/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-agent-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/agent-manager/?(.*)", "/$1"]
+
+     # --- bot-framework ---
+     - id: ef-cx-bot-framework-main
+       uris: ["/bot-framework/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-bot-framework
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/bot-framework/?(.*)", "/$1"]
+
+     # --- ccm ---
+     - id: ef-cx-ccm-agents-unsecured
+       uris: ["/ccm/agents/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-ccm
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/ccm/(.*)", "/$1"]
+     - id: ef-cx-ccm-channels-svc-id-unsecured
+       uris: ["/ccm/channels/service-identifier/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-ccm
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/ccm/(.*)", "/$1"]
+     - id: ef-cx-ccm-widget-configs-unsecured
+       uris: ["/ccm/widget-configs/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-ccm
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/ccm/(.*)", "/$1"]
+     - id: ef-cx-ccm-main-secured
+       uris: ["/ccm/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-ccm
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/ccm/?(.*)", "/$1"]
+     - id: ef-cx-ccm-internal-wcm-access
+       uris: ["/internal-wcm-to-ccm/*"]
+       hosts: ["apisix-gateway.ef-external.svc.cluster.local"]
+       priority: 20
+       service_id: svc-ccm
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/internal-wcm-to-ccm/(.*)", "/$1"]
+         real-ip:
+           enable: true
+           source: "X-Forwarded-For"
+           trusted_addresses: ["10.42.0.0/16"]
+         limit-count:
+           enable: true
+           count: 10
+           time_window: 1
+           key_type: "var"
+           key: "remote_addr"
+           rejected_code: 429
+           rejected_msg: "{\"error\":\"Internal rate limit exceeded .\"}"
+           show_limit_quota_header: true
+
+     # --- cim-customer ---
+     - id: ef-cx-cim-customer-main
+       uris: ["/cim-customer/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-cim-customer
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/cim-customer/?(.*)", "/$1"]
+
+     # --- conversation-manager ---
+     - id: ef-cx-conversation-manager-main
+       uris: ["/conversation-manager/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-conversation-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/conversation-manager/?(.*)", "/$1"]
+
+     # --- conversation-monitor ---
+     - id: ef-cx-conversation-monitor-main
+       uris: ["/conversation-monitor/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-conversation-monitor
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/conversation-monitor/?(.*)", "/$1"]
+
+     # --- customer-widget ---
+     - id: ef-cx-customer-widget-main
+       uris: ["/customer-widget/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-customer-widget
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/customer-widget/?(.*)", "/$1"]
+         client-control:
+           enable: true
+           config: { max_body_size: 6291456 }
+     - id: ef-cx-customer-widget-assets
+       uris: ["/widget-assets/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-customer-widget
+       status: 1
+       plugins:
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+
+     # --- file-engine ---
+     - id: ef-cx-file-engine-public-svg-downloads
+       uris: ["/file-engine/api/downloadFileStream"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 10
+       service_id: svc-file-engine
+       methods: ["GET"]
+       vars:
+         - ["arg_filename", "~~", "^(_CISCO_CC\\.svg|_CX_VOICE\\.svg|_EMAIL\\.svg|_FACEBOOK\\.svg|_GENERIC\\.svg|_INSTAGRAM\\.svg|_LINKEDIN\\.svg|_SMS\\.svg|_TELEGRAM\\.svg|_TWITTER\\.svg|_VIBER\\.svg|_VOICEh\\.svg|_VOICE\\.svg|_WEB_RTC\\.svg|_WEB\\.svg|_WHATSAPP\\.svg|_YOUTUBE\\.svg)$"]
+       status: 0 # This route is disabled as per values.yaml
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/file-engine/(api/downloadFileStream.*)$", "/$1"]
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, OPTIONS"
+           allow_credentials: true
+         response-rewrite:
+           enable: true
+           config:
+             headers: { set: { "X-XSS-Protection": "1; mode=block" } }
+     - id: ef-cx-file-engine-main
+       uris: ["/file-engine/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-file-engine
+       status: 1
+       plugins:
+         openid-connect:
+           enable: false # Corrected: Disabled by default
+           discovery: "http://keycloak.ef-external.svc/auth/realms/expertflow/.well-known/openid-configuration"
+           realm: "expertflow"
+           client_id: "cim"
+           client_secret: "ef61df80-061c-4c29-b9ac-387e6bf67052"
+           bearer_only: true
+           token_signing_alg_values_expected: "RS256"
+           set_access_token_header: false
+           set_userinfo_header: false
+           audience: ["cim", "account", "realm-management"]
+           required_scopes: ["email", "profile"]
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/file-engine/?(.*)", "/$1"]
+         client-control:
+           enable: true
+           config: { max_body_size: 6291456 }
+         response-rewrite:
+           enable: true
+           config:
+             headers: { set: { X-XSS-Protection: "1; mode=block" } }
+
+     # --- historical-reports ---
+     - id: ef-cx-historical-reports-main
+       uris: ["/historical-reports/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-historical-reports
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/historical-reports/?(.*)", "/$1"]
+
+     # --- license-manager ---
+     - id: ef-cx-license-manager-main
+       uris: ["/license-manager/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-license-manager
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/license-manager/?(.*)", "/$1"]
+
+     # --- realtime-reports ---
+     - id: ef-cx-realtime-reports-main
+       uris: ["/realtime-reports/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-realtime-reports
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/realtime-reports/?(.*)", "/$1"]
+
+     # --- routing-engine ---
+     - id: ef-cx-routing-engine-main
+       uris: ["/routing-engine/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-routing-engine
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/routing-engine/?(.*)", "/$1"]
+
+     # --- team-announcement ---
+     - id: ef-cx-team-announcement-main
+       uris: ["/team-announcement/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-team-announcement
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/team-announcement/?(.*)", "/$1"]
+
+     # --- unified-admin ---
+     - id: ef-cx-unified-admin-main
+       uris: ["/unified-admin","/unified-admin/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-unified-admin
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/unified-admin/?(.*)", "/$1"]
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+         client-control:
+           enable: true
+           config: { max_body_size: 6291456 }
+     - id: ef-cx-unified-admin-default
+       uris: ["/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: -10
+       service_id: svc-unified-admin
+       status: 1
+     - id: ef-cx-unified-admin-default-404-handler
+       uris: ["/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: -200
+       service_id: dummy-service-for-404
+       status: 0 # This route is disabled as per values.yaml
+       plugins:
+         mocking:
+           enable: true
+           response_status: 404
+           response_headers:
+             Content-Type: "text/html; charset=utf-8"
+             X-Custom-Error-Page: "true"
+           response_example: |
+             <!DOCTYPE html>
+             <html lang="en">
+             <head>
+                 <meta charset="UTF-8">
+                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                 <title>Page Not Found</title>
+                 <style>
+                     body { font-family: Arial, sans-serif; text-align: center; padding: 50px; color: #333; }
+                     h1 { font-size: 48px; color: #555; }
+                     p { font-size: 18px; }
+                     a { color: #007bff; text-decoration: none; }
+                 </style>
+             </head>
+             <body>
+                 <h1>404 - Page Not Found</h1>
+                 <p>Sorry, the page you are looking for does not exist or has been moved.</p>
+                 <p><a href="/">Return to Homepage</a></p>
+                 <hr>
+                 <p><small>Request ID: $request_id</small></p>
+                 </body>
+             </html>
+
+     # --- web-channel-manager ---
+     - id: ef-cx-web-channel-manager-main
+       uris: ["/web-channel-manager/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-web-channel-manager
+       enable_websocket: true
+       status: 1
+       timeout:
+         connect: 5
+         send: 3600
+         read: 3600
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/web-channel-manager/?(.*)", "/$1"]
+
+     # --- business-calendar ---
+     - id: ef-cx-business-calendar-main
+       uris: ["/business-calendar/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-business-calendar
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/business-calendar/?(.*)", "/$1"]
+
+     # --- unified-agent ---
+     - id: cx-agent-desk-unified-agent-main
+       uris: ["/unified-agent", "/unified-agent/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-unified-agent
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/unified-agent/?(.*)", "/$1"]
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+     - id: cx-agent-desk-unified-agent-assets
+       uris: ["/assets/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-unified-agent
+       status: 1
+       plugins:
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+         client-control:
+           enable: true
+           config: { max_body_size: 6291456 }
+
+     - id: cx-agent-desk-grafana-main
+       uris: ["/grafana", "/grafana/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-grafana
+       status: 1
+       plugins:
+         proxy-rewrite:
+         #enable: true
+         regex_uri:
+           - "^/grafana(/|$)(.*)"
+           - "/$2"
+         headers:
+           X-Forwarded-Proto: "https"
+           X-Forwarded-Host: "{{ .Values.global.ingressRouter }}"
+           X-Forwarded-Prefix: "/grafana"
+           Upgrade: "$http_upgrade"
+           Connection: "upgrade"
+  
+     # --- campaigns-backend ---
+     - id: cx-campaigns-campaigns-backend-main
+       uris: ["/campaigns/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-campaigns-backend
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/campaigns/?(.*)", "/$1"]
+
+     # --- campaign-studio ---
+     - id: cx-campaigns-campaign-studio-redirect
+       uris: ["/campaign-studio"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 1
+       service_id: svc-campaign-studio
+       methods: ["GET"]
+       status: 1
+       plugins:
+         redirect:
+           enable: true
+           uri: "$uri/"
+           ret_code: 301
+     - id: cx-campaigns-campaign-studio-main
+       uris: ["/campaign-studio/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-campaign-studio
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/campaign-studio(/|$)(.*)", "/red/$2"]
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+
+     # --- scheduled-activities ---
+     - id: cx-campaigns-scheduled-activities-main
+       uris: ["/scheduler/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-scheduled-activities
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/scheduler/?(.*)", "/$1"]
+
+     # --- (Channels) ---
+     - id: cx-channels-connect360-main
+       uris: ["/360connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-connect360
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/360connector/?(.*)", "/$1"]
+     - id: cx-channels-facebook-connector-main
+       uris: ["/facebook-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-facebook-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/facebook-connector/?(.*)", "/$1"]
+     - id: cx-channels-instagram-connector-main
+       uris: ["/instagram-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-instagram-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/instagram-connector/?(.*)", "/$1"]
+     - id: cx-channels-smpp-connector-main
+       uris: ["/smppconnector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-smpp-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/smppconnector/?(.*)", "/$1"]
+     - id: cx-channels-telegram-connector-main
+       uris: ["/telegram-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-telegram-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/telegram-connector/?(.*)", "/$1"]
+     - id: cx-channels-twilio-connector-main
+       uris: ["/twilio-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-twilio-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/twilio-connector/?(.*)", "/$1"]
+     - id: cx-channels-twitter-connector-main
+       uris: ["/twitter-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-twitter-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/twitter-connector/?(.*)", "/$1"]
+     - id: cx-channels-viber-connector-main
+       uris: ["/viber-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-viber-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/viber-connector/?(.*)", "/$1"]
+     - id: cx-channels-email-connector-main
+       uris: ["/email-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-email-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/email-connector/?(.*)", "/$1"]
+     - id: cx-channels-whatsapp-connector-main
+       uris: ["/whatsapp-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-whatsapp-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/whatsapp-connector/?(.*)", "/$1"]
+     - id: cx-channels-ms-email-connector-main
+       uris: ["/ms-email-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-ms-email-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/ms-email-connector/?(.*)", "/$1"]
+     - id: cx-channels-youtube-connector-main
+       uris: ["/youtube-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-youtube-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/youtube-connector/?(.*)", "/$1"]
+     - id: cx-channels-linkedin-connector-main
+       uris: ["/linkedin-connector/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-linkedin-connector
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/linkedin-connector/?(.*)", "/$1"]
+
+     # --- Eleveo ---
+     - id: cx-eleveo-eleveo-api-main
+       uris: ["/eleveo-connector-api/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-eleveo-api
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/eleveo-connector-api/?(.*)", "/$1"]
+     - id: cx-eleveo-eleveo-runner-main
+       uris: ["/eleveo-recording-runner/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-eleveo-runner
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/eleveo-recording-runner/?(.*)", "/$1"]
+
+     # --- Surveys ---
+     - id: cx-surveys-survey-backend-main
+       uris: ["/survey-backend/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-survey-backend
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/survey-backend/?(.*)", "/$1"]
+     - id: cx-surveys-survey-studio-redirect
+       uris: ["/survey-studio"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 1
+       service_id: svc-survey-studio
+       methods: ["GET"]
+       status: 1
+       plugins:
+         redirect:
+           enable: true
+           uri: "$uri/"
+           ret_code: 301
+     - id: cx-surveys-survey-studio-main
+       uris: ["/survey-studio/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-survey-studio
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/survey-studio(/|\\$)(.*)", "/red/$2"]
+         cors:
+           enable: true
+           allow_origins: "*"
+           allow_methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+           allow_credentials: true
+     # --- cisco-sync-service  ---
+     - id: cisco-sync-service-main
+       uris: ["/cisco-sync-service/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-cisco-sync-service
+       status: 1
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri: ["^/cisco-sync-service(/|$)(.*)", "/$2"]
+
+     # --- qm‑backend main --------------------------------------------------------
+     - id: qm-backend-main
+       uris: ["/qm-backend/*"]
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 0
+       service_id: svc-qm-backend
+       status: 1
+       plugins:
+         # strip /qm-backend prefix  →  /$2
+         proxy-rewrite:
+           enable: true
+           regex_uri:
+             - "^/qm-backend(/|$)(.*)"
+             - "/$2"
+         cors:
+           allow_origins: "*"               # same as nginx enable‑cors + $http_origin snippet
+           allow_origins_by_regex: [".*"]   # keep this if you still want regex support
+           allow_methods: "PUT,GET,POST,OPTIONS,DELETE,PATCH"
+           allow_headers: "*"               # optional but common
+           allow_credential: false
+           max_age: 5
+
+     # --- qm‑backend SSE ---------------------------------------------------------
+     - id: qm-backend-sse
+       uris:
+         - "/qm-backend/notification/*/sse"
+       hosts: ["{{ .Values.global.ingressRouter }}"]
+       priority: 1
+       service_id: svc-qm-backend
+       status: 1
+       timeout:
+         connect: 5
+         send: 43200          # 12 h
+         read: 43200
+       plugins:
+         proxy-rewrite:
+           enable: true
+           regex_uri:
+             - "^/qm-backend/(notification/[^/]+/sse)(/|$)"
+             - "/$1"
+
+         cors:
+           allow_origins: "*"
+           allow_origins_by_regex: [".*"]
+           allow_methods: "GET,OPTIONS"
+           allow_headers: "*"
+           allow_credential: false
+           max_age: 5
+ 
