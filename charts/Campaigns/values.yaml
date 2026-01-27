@@ -128,7 +128,7 @@ campaign-studio:
    service:
       enabled: true
       port: 1880
-      portName: "http-sb-1880"
+      portName: "http-0"
       targetPort: "http-sb-1880"
    ingress: { enabled: false } # Using APISIX
    extraVolumes:
