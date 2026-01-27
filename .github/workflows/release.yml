@@ -55,10 +55,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential jq
-          gem install github_changelog_generator
+          sudo gem install github_changelog_generator
           curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
-
       # ------------------------------------
       # Detect changed charts since last tag
       # ------------------------------------
