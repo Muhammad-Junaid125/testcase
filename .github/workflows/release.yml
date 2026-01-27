@@ -19,38 +19,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for git-cliff to read history
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Install Tools (yq & git-cliff)
+      - name: Install Tools
         run: |
-          # Install yq
+          # Install yq (Direct Binary)
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-          # Install git-cliff
-          curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-linux-amd64 -o git-cliff.tar.gz
-          tar -xzf git-cliff.tar.gz
-          sudo mv git-cliff-*/git-cliff /usr/local/bin/
-          rm -rf git-cliff.tar.gz git-cliff-*
+          
+          # Install git-cliff (Fixed Download)
+          # We use the specific tag to avoid redirection issues with 'latest'
+          CLIFF_VER=$(curl -s https://api.github.com/repos/orhun/git-cliff/releases/latest | jq -r .tag_name | sed 's/v//')
+          curl -L "https://github.com/orhun/git-cliff/releases/download/v${CLIFF_VER}/git-cliff-${CLIFF_VER}-x86_64-unknown-linux-gnu.tar.gz" -o cliff.tar.gz
+          tar -xzf cliff.tar.gz
+          sudo mv git-cliff-${CLIFF_VER}/git-cliff /usr/local/bin/
+          rm -rf cliff.tar.gz git-cliff-${CLIFF_VER}
 
       - name: Detect changed charts
         id: charts
         shell: bash
         run: |
-          # Find directories in charts/ that have changes compared to previous commit
-          # If it's a new branch/tag, it compares against the parent
-          git diff --name-only HEAD~1 HEAD | grep '^charts/' | cut -d/ -f2 | sort -u > changed_charts.txt
-          echo "charts=$(cat changed_charts.txt | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          # Detect directories changed in the 'charts/' folder
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^charts/' | cut -d/ -f2 | sort -u | xargs echo)
+          echo "Found changed charts: $CHANGED"
+          echo "list=$CHANGED" >> "$GITHUB_OUTPUT"
 
       - name: Generate per-chart changelogs
-        if: steps.charts.outputs.charts != ''
+        if: steps.charts.outputs.list != ''
         shell: bash
         run: |
-          for chart in ${{ steps.charts.outputs.charts }}; do
+          for chart in ${{ steps.charts.outputs.list }}; do
             CHART_PATH="charts/$chart"
             if [ ! -f "$CHART_PATH/Chart.yaml" ]; then continue; fi
 
@@ -59,7 +62,7 @@ jobs:
 
             echo "Generating changelog for $RELEASE_NAME"
             
-            # Using --include-path ensures we only grab commits for THIS chart folder
+            # Generate the changelog for this specific folder
             git-cliff \
               --config cliff.toml \
               --include-path "$CHART_PATH/**" \
@@ -67,7 +70,7 @@ jobs:
               --output "$CHART_PATH/CHANGELOG.md"
           done
 
-      - name: Commit changelogs
+      - name: Commit and Push Changelogs
         run: |
           git add charts/*/CHANGELOG.md
           git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || echo "No changes to commit"
@@ -79,8 +82,6 @@ jobs:
       - name: Add Helm Repos
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add grafana https://grafana.github.io/helm-charts
-          helm repo add apiseven https://charts.apiseven.com
           helm repo update
 
       - name: Run chart-releaser

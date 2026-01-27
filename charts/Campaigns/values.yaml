@@ -133,8 +133,6 @@ campaign-studio:
    ingress: { enabled: false } # Using APISIX
    extraVolumes:
       - name: ef-logback
-        configMap:
-           name: ef-logback-cm
    extraVolumeMounts:
       - name: ef-logback
         mountPath: /logback
