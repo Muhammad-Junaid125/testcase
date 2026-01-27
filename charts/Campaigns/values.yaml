@@ -69,11 +69,11 @@ campaigns-backend:
    enabled: true
    image:       
       repository: cim/campaigns
-      tag: 4.9.3
+      tag: 4.9.5
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
-      - name: "http-cp-3000"
+      - name: "http-cp-30000000000000"
         containerPort: 3000
    extraEnvVars:
       - name: PORT
@@ -81,9 +81,9 @@ campaigns-backend:
       - name: LOG_LEVEL
         value: debug
       - name: MONGO_CONNECTION_STRING
-        value:  mongodb://mongo-mongodb.ef-external.svc.cluster.local
+        value:  mongodb://mongo-mongodb.e
       - name: NODERED_URI
-        value:  http://{{ .Release.Name }}-campaign-studio-svc.{{ .Release.Namespace }}.svc:1880
+        value:  http://{{ .Release.Name }}-camdio-svc.{{ .Release.Namespace }}.svc:1880
       - name:  NODERED_USERNAME
         value: admin
       - name: NODERED_PASS
@@ -133,13 +133,6 @@ campaign-studio:
         value: http://{{ .Release.Name }}-campaigns-backend-svc.{{ .Release.Namespace }}.svc:3000
       - name: SCHEDULER_URL
         value:  http://{{ .Release.Name }}-scheduled-activities-svc.{{ .Release.Namespace }}.svc:8894
-      - name: URIForWebhook
-        value: http://{{ .Release.Name }}-campaign-studio-svc.{{ .Release.Namespace }}.svc:1880
-      - name: GATEWAY_ID
-        value: 52952a5a-e7b0-40bc-aae2-f0819446c968
-      - name: IVR_EXTENSION
-        value: "*9664"
-      - name: UCCE_FQDN
         value: 192.168.1.89
       - name: UCCE_USERNAME
         value: administrator@ucce.ipcc
