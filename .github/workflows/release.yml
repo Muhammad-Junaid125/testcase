@@ -9,11 +9,12 @@ on:
     paths:
       - 'charts/**'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       # ------------------------------------
@@ -36,10 +37,10 @@ jobs:
       # Install Helm
       # ------------------------------------
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
 
       # ------------------------------------
-      # Add ALL required Helm repositories
+      # Add required Helm repositories
       # ------------------------------------
       - name: Add Helm repositories
         run: |
@@ -49,15 +50,20 @@ jobs:
           helm repo update
 
       # ------------------------------------
-      # Install required tools
+      # Install required tools (NO RUBY)
       # ------------------------------------
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential jq
-          sudo gem install github_changelog_generator
-          curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          sudo apt-get install -y jq
+          curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -o /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
+
+          curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-linux-amd64 \
+            -o /usr/local/bin/git-cliff
+          chmod +x /usr/local/bin/git-cliff
+
       # ------------------------------------
       # Detect changed charts since last tag
       # ------------------------------------
@@ -80,7 +86,7 @@ jobs:
 
       # ------------------------------------
       # Generate per-chart changelogs
-      # CLEAN + READABLE + HYPERLINKS
+      # CLEAN + READABLE + STABLE
       # ------------------------------------
       - name: Generate per-chart changelogs
         if: steps.charts.outputs.charts != ''
@@ -95,19 +101,14 @@ jobs:
             fi
 
             VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
-            RELEASE_TAG="${chart}-${VERSION}"
+            RELEASE="${chart}-${VERSION}"
 
-            echo "Generating changelog for $RELEASE_TAG"
+            echo "Generating changelog for $RELEASE"
 
-            github_changelog_generator \
-              --user "${{ github.repository_owner }}" \
-              --project "$(basename $GITHUB_REPOSITORY)" \
-              --future-release "$RELEASE_TAG" \
-              --no-issues \
-              --no-pull-requests \
-              --no-unreleased \
-              --exclude-labels duplicate,question,invalid \
-              --output "$CHART_PATH/CHANGELOG.md"
+            git-cliff \
+              --tag "$RELEASE" \
+              --output "$CHART_PATH/CHANGELOG.md" \
+              --strip all
           done
 
       # ------------------------------------
@@ -131,7 +132,30 @@ jobs:
           done
 
       # ------------------------------------
-      # Release Helm charts
+      # Lint Helm charts
+      # ------------------------------------
+      - name: Helm lint
+        run: |
+          for d in charts/*; do
+            if [ -f "$d/Chart.yaml" ]; then
+              helm lint "$d"
+            fi
+          done
+
+      # ------------------------------------
+      # Package Helm charts
+      # ------------------------------------
+      - name: Package Helm charts
+        run: |
+          mkdir -p .cr-release-packages
+          for d in charts/*; do
+            if [ -f "$d/Chart.yaml" ]; then
+              helm package "$d" --destination .cr-release-packages
+            fi
+          done
+
+      # ------------------------------------
+      # Release Helm charts to GitHub Pages
       # ------------------------------------
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
