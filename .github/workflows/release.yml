@@ -107,14 +107,17 @@ jobs:
               echo "## ${chart}-${VERSION} - $(date +%Y-%m-%d)"
               echo ""
               echo "### 🐛 Bug Fixes"
+              echo ""
 
-            git log $RANGE \
-              --no-merges \
-              -- "$CHART_PATH" \
-              --pretty=format:"- %s (%h) by @%an" \
-              | grep -vi "changelog" || true
-          } > "$CHART_PATH/CHANGELOG.md"
-      done
+              git log $RANGE \
+                --no-merges \
+                -- "$CHART_PATH" \
+                --pretty=format:"- %s (%h) by @%an" \
+                | grep -vi "changelog" || true
+            } > "$CHART_PATH/CHANGELOG.md"
+
+          done
+
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------

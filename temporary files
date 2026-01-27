@@ -283,3 +283,149 @@ jobs:
               echo "No chart-specific changes" > "$CHART_PATH/CHANGELOG.md"
             fi
           done
+
+################chnage form link changelogs###
+name: Release Helm Charts with Per-Chart Changelog
+
+on:
+  push:
+    branches:
+      - main
+      - CX-4.10.4
+      - CX-5.0-alpha
+    paths:
+      - 'charts/**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ------------------------------------
+      # Checkout full git history
+      # ------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------
+      # Configure Git identity
+      # ------------------------------------
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      # ------------------------------------
+      # Install Helm
+      # ------------------------------------
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      # ------------------------------------
+      # Add ALL required Helm repositories
+      # ------------------------------------
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add apiseven https://charts.apiseven.com
+          helm repo update
+
+      # ------------------------------------
+      # Install required tools
+      # ------------------------------------
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+          npm install -g git-cliff
+
+      # ------------------------------------
+      # Detect changed charts (TAG-SAFE)
+      # ------------------------------------
+      - name: Detect changed charts
+        id: charts
+        shell: bash
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            git diff --name-only "$LAST_TAG"..HEAD
+          else
+            git diff --name-only HEAD
+          fi \
+          | grep '^charts/' \
+          | cut -d/ -f2 \
+          | sort -u \
+          | tr '\n' ' ' > charts.txt
+
+          echo "charts=$(cat charts.txt)" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------
+      # Generate per-chart changelogs
+      # ------------------------------------
+      - name: Generate per-chart changelogs (PATH-AWARE)
+        if: steps.charts.outputs.charts != ''
+        shell: bash
+        run: |
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/$chart"
+
+            if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+              echo "Skipping $chart (no Chart.yaml)"
+              continue
+            fi
+
+            VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
+            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1 || true)
+
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="$PREV_TAG..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+
+            {
+              echo "## ${chart}-${VERSION} - $(date +%Y-%m-%d)"
+              echo ""
+              echo "### 🐛 Bug Fixes"
+
+            git log $RANGE \
+              --no-merges \
+              -- "$CHART_PATH" \
+              --pretty=format:"- %s (%h) by @%an" \
+              | grep -vi "changelog" || true
+          } > "$CHART_PATH/CHANGELOG.md"
+      done
+      # ------------------------------------
+      # Commit changelogs
+      # ------------------------------------
+      - name: Commit changelogs
+        run: |
+          git add charts/*/CHANGELOG.md
+          git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || true
+          git push
+
+      # ------------------------------------
+      # Update Helm dependencies
+      # ------------------------------------
+      - name: Update Helm dependencies
+        run: |
+          for d in charts/*; do
+            if [ -f "$d/Chart.yaml" ]; then
+              helm dependency update "$d"
+            fi
+          done
+
+      # ------------------------------------
+      # Release Helm charts
+      # ------------------------------------
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
