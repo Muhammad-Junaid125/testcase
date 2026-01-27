@@ -1,3 +1,12 @@
+## [unreleased]
+
+### 🐛 Bug Fixes
+
+- Al changes
+
+### 📚 Documentation
+
+- *(changelog)* Update helm chart changelogs [skip ci]
 ## [agent-desk-5.2.0] - 2026-01-22
 
 ### 💼 Other
