@@ -114,7 +114,7 @@ jobs:
               --pretty=format:"- %s (%h) by @%an" \
               | grep -vi "changelog" || true
           } > "$CHART_PATH/CHANGELOG.md"
-        done
+      done
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
