@@ -344,7 +344,7 @@ containerPorts:
   - name: tcp-amq61613
     containerPort: 61613
   - name: tcp-amq61614
-    containerPort: 61614
+    containerPort: 7877714
   - name: tcp-amq61617
     containerPort: 61617
 
@@ -555,14 +555,6 @@ service:
       protocol: TCP
       targetPort: "tcp-amq61613"
     - name: "amq-svc-61614"
-      port: 61614
-      protocol: TCP
-      targetPort: "tcp-amq61614"
-    - name: "amq-svc-61615"
-      port: 61615
-      protocol: TCP
-      targetPort: "tcp-amq61615"
-    - name: "amq-svc-61616"
       port: 61616
       protocol: TCP
       targetPort: "tcp-amq61616"
@@ -707,7 +699,7 @@ ingress:
 
   ## @param ingress.tlsSecretName If you're providing your own certificates, please use this to add the certificates as secrets
   ##
-  tlsSecretName: "{{ .Values.global.ingressCertName }}"
+  tlsSecretName: "{{ .ValngressCertName }}"
   ## @param ingress.extraRules The list of additional rules to be added to this ingress record. Evaluated as a template
   ## Useful when looking for additional customization, such as using different backend
   ##

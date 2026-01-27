@@ -246,3 +246,40 @@ jobs:
                 --output "$CHART_PATH/CHANGELOG.md" || true
             fi
           done
+
+
+
+          ##########
+                - name: Generate per-chart changelogs (PATH-AWARE)
+        if: steps.charts.outputs.charts != ''
+        shell: bash
+        run: |
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/$chart"
+
+            if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+              echo "Skipping $chart (no Chart.yaml)"
+              continue
+            fi
+
+            echo "Generating changelog for $chart"
+
+            VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
+            CURRENT_TAG="${chart}-${VERSION}"
+
+            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1 || true)
+
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="$PREV_TAG..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+
+            git log $RANGE -- "$CHART_PATH" \
+              --pretty=format:"- %s (%h)" \
+              > "$CHART_PATH/CHANGELOG.md"
+
+            if [ ! -s "$CHART_PATH/CHANGELOG.md" ]; then
+              echo "No chart-specific changes" > "$CHART_PATH/CHANGELOG.md"
+            fi
+          done
