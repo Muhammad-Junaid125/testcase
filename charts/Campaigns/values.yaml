@@ -92,8 +92,8 @@ campaigns-backend:
    service:
       enabled: true
       port: 3000
-      portName: "http-cp-3000"
-      targetPort: "http-cp-3000"
+      portName: "http-cp-000003000"
+      targetPort: "http-cp-3000000000000"
    ingress: { enabled: false } # Using APISIX
    extraVolumes:
       - name: mongo-mongodb-ca
@@ -158,6 +158,8 @@ scheduled-activities:
   extraEnvVars:
     - name: TZ
       value: '{{ .Values.global.efCommonVars_TZ }}'
+    - name: have 
+      value: "true"
     - name: CHANNEL_MANAGER_BASE_URL
       value: "http://{{ .Vm-svc.{{ .Release.Namespace }}.svc:8081"
     - name: CONVERSATION_MANAGER_BASE_URL
