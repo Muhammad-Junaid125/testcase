@@ -17,7 +17,7 @@ jobs:
 
     steps:
       # ------------------------------------
-      # Checkout full git history
+      # Checkout full git history (REQUIRED)
       # ------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,13 +54,13 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq
+          sudo apt-get install -y ruby ruby-dev build-essential jq
+          gem install github_changelog_generator
           curl -sSL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
-          npm install -g git-cliff
 
       # ------------------------------------
-      # Detect changed charts (TAG-SAFE)
+      # Detect changed charts since last tag
       # ------------------------------------
       - name: Detect changed charts
         id: charts
@@ -81,8 +81,9 @@ jobs:
 
       # ------------------------------------
       # Generate per-chart changelogs
+      # CLEAN + READABLE + HYPERLINKS
       # ------------------------------------
-      - name: Generate per-chart changelogs (PATH-AWARE)
+      - name: Generate per-chart changelogs
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
@@ -95,31 +96,23 @@ jobs:
             fi
 
             VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
-            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1 || true)
+            RELEASE_TAG="${chart}-${VERSION}"
 
-            if [ -n "$PREV_TAG" ]; then
-              RANGE="$PREV_TAG..HEAD"
-            else
-              RANGE="HEAD"
-            fi
+            echo "Generating changelog for $RELEASE_TAG"
 
-            {
-              echo "## ${chart}-${VERSION} - $(date +%Y-%m-%d)"
-              echo ""
-              echo "### 🐛 Bug Fixes"
-              echo ""
-
-              git log $RANGE \
-                --no-merges \
-                -- "$CHART_PATH" \
-                --pretty=format:"- %s (%h) by @%an" \
-                | grep -vi "changelog" || true
-            } > "$CHART_PATH/CHANGELOG.md"
-
+            github_changelog_generator \
+              --user "${{ github.repository_owner }}" \
+              --project "$(basename $GITHUB_REPOSITORY)" \
+              --future-release "$RELEASE_TAG" \
+              --no-issues \
+              --no-pull-requests \
+              --no-unreleased \
+              --exclude-labels duplicate,question,invalid \
+              --output "$CHART_PATH/CHANGELOG.md"
           done
 
       # ------------------------------------
-      # Commit changelogs
+      # Commit changelog files
       # ------------------------------------
       - name: Commit changelogs
         run: |

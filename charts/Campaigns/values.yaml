@@ -62,7 +62,7 @@ campaigns-backend:
    enabled: true
    image:       
       repository: cim/campaigns
-      tag: 4.9.6
+      tag: 4.9.8
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -111,7 +111,7 @@ campaign-studio:
    enabled: true
    image:       
       repository: cim/conversation-studio
-      tag: 4.9.7
+      tag: 4.9.8
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
@@ -121,20 +121,11 @@ campaign-studio:
       - name: TZ
         value: Asia/Karachi
       - name: FQDN
-        value: '{{ .Values.global.ingressRouter }}' 
-      - name: CAMPAIGNS_BACKEND
-        value: http://{{ .Release.Name }}-campaigns-backend-svc.{{ .Release.Namespace }}.svc:3000
-      - name: SCHEDULER_URL
-        value:  http://{{ .Release.Name }}Namespace }}.svc:8894
-        value: 192.168.1.89
-      - name: UCCE_USERNAME
-        value: administrator@ucce.ipcc
-      - name: UCCX_PASSWORD
-        value: Expertflow464
+        value: '{{ .Values.global.ingressRouter }}
       - name: ALLOW_CISCO_SELF_SIGNED_CERTS
         value: "true"
       - name: CISCO_PROXY
-        value: 'https://{{ .Values.global.ingressRouter }}/campaign-studio'
+        value: 'https://{{ .Values.globaluter }}/campaign-studio'
    siteEnvVars: []
    service:
       enabled: true
