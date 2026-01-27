@@ -87,21 +87,31 @@ jobs:
         shell: bash
         run: |
           for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/$chart"
+
+            # Safety check
+            if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+              echo "Skipping $chart (Chart.yaml not found)"
+              continue
+            fi
+
             echo "Generating changelog for $chart"
 
-            CHART_PATH="charts/$chart"
             VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
-            CURRENT_TAG="$chart-$VERSION"
+            CURRENT_TAG="${chart}-${VERSION}"
 
-            PREV_TAG=$(git tag --list "$chart-*" --sort=-v:refname | head -n 1 || true)
+            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1 || true)
 
             if [ -n "$PREV_TAG" ]; then
-              git cliff "$PREV_TAG..HEAD" --output "$CHART_PATH/CHANGELOG.md"
+              echo "Using tag range: $PREV_TAG..HEAD"
+              git cliff "$PREV_TAG..HEAD" \
+                --output "$CHART_PATH/CHANGELOG.md" || true
             else
-              git cliff --output "$CHART_PATH/CHANGELOG.md"
+              echo "No previous tag found for $chart, generating full changelog"
+              git cliff \
+                --output "$CHART_PATH/CHANGELOG.md" || true
             fi
           done
-
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
