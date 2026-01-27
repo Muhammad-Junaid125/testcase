@@ -49,8 +49,7 @@ global:
   efCommonVars_TOPIC_CONCURRENCY_MAX: "6"
 
   ## EF-External related Service URIs -- not used atm. 
-  efGrafanaDatasourceSecret: "ef-grafana-datasource-secret"
-  efGrafanaSupervisorDashboardConfigMap: "ef-grafana-supervisor-dashboard-mysql"
+  efGrafanaDatasourceSecret: "ef-grafanapervisor-dashboard-mysql"
   efGrafanaSupervisorDashboardFilename: "Supervisor_Dashboard_CIM-mysql.json"
   efGrafanaAgentDashboardConfigMap: "ef-grafana-agent-dashboard-mysql"
   efGrafanaAgentDashboardFilename: "Agent_Dashboard_CIM-mysql.json"

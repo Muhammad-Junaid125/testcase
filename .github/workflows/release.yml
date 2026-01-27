@@ -107,6 +107,14 @@ jobs:
           git add charts/*/CHANGELOG.md
           git commit -m "docs(changelog): update helm chart changelogs [skip ci]" || echo "No changes to commit"
           git push
+          
+      - name: Update Helm dependencies
+        run: |
+          for d in charts/*; do
+            if [ -f "$d/Chart.yaml" ]; then
+              helm dependency update "$d"
+            fi
+          done
 
       # ------------------------------------
       # Release Helm charts
