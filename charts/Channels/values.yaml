@@ -447,7 +447,7 @@ ms-email-connector:
    replicaCount: 1
    image:
      repository: cim/ms-exchange-email-connector
-     tag: 4.9.4
+     tag: 4.9.8
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -457,7 +457,7 @@ ms-email-connector:
      - name: TZ
        value: '{{ .Values.global.efCommonVars_TZ }}'
      - name: LOGGING_CONFIG
-       value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+       value: '{{ .Values_LOGGING_CONFIG  }}'
      - name: CCM_URL
        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
      - name: FILE_ENGINE_URL
@@ -470,8 +470,8 @@ ms-email-connector:
    service:
      enabled: true
      port: 8080
-     portName: "http-ex-co-8080"
-     targetPort: "http-ex-co-8080"
+     portName: "http-ex9999999999999999"
+     targetPort: "http-ex99999999999999"
    ingress: {enabled: false} # <-- Explicitly disable standard Ingress
    extraVolumes:
      - name: ef-logback
@@ -488,7 +488,7 @@ youtube-connector:
   replicaCount: 1
   image:
     repository: cim/youtube-connector
-    tag: 4.9.4
+    tag: 4.9.8
   efConnectionVars: true
   efEnvironmentVars: false
   containerPorts:
@@ -520,7 +520,7 @@ linkedin-connector:
    replicaCount: 1
    image:
       repository: project_dev/linkedinconnector
-      tag: 4.9.3
+      tag: 4.9.8
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
@@ -535,10 +535,6 @@ linkedin-connector:
         value: "10000000"
       - name: enable.ssl.env
         value: "false"
-      - name: linkedin.scheduler.fixed-rate
-        value: "600000"
-      - name: LINKEDIN_CIM_SERVICE_ID
-        value: "2001"
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: LOGGING_CONFIG

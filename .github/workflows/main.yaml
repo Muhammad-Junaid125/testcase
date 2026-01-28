@@ -63,12 +63,23 @@ jobs:
           echo "Changed charts: $CHANGED"
 
       # ------------------------------------
-      # Generate per-chart changelogs
+      # Generate detailed per-chart changelogs
       # ------------------------------------
       - name: Generate per-chart CHANGELOG.md
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
+          # Initialize root changelog
+          {
+            echo "# Helm Charts Changelog"
+            echo ""
+            echo "All notable changes to Helm charts will be documented in this file."
+            echo ""
+            echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
+            echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
+            echo ""
+          } > CHANGELOG.md
+
           for chart in ${{ steps.charts.outputs.charts }}; do
             CHART_PATH="charts/${chart}"
 
@@ -80,74 +91,118 @@ jobs:
 
             # Get chart version
             VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml" 2>/dev/null || echo "unknown")
-            CHART_TAG="${chart}-${VERSION}"
             DATE=$(date +%Y-%m-%d)
 
-            # Get latest tag for this specific chart
-            LATEST_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1)
+            # Get last 2 tags for this chart
+            TAGS=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 2)
+            TAG_ARRAY=($TAGS)
+            LATEST_TAG="${TAG_ARRAY[0]}"
+            PREVIOUS_TAG="${TAG_ARRAY[1]}"
             
-            if [ -n "$LATEST_TAG" ]; then
+            if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
+              COMMIT_RANGE="${PREVIOUS_TAG}..${LATEST_TAG}"
+              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (${PREVIOUS_TAG} → ${LATEST_TAG})"
+            elif [ -n "$LATEST_TAG" ]; then
               COMMIT_RANGE="${LATEST_TAG}..HEAD"
-              echo "📊 Generating changelog for ${CHART_TAG} (since ${LATEST_TAG})"
+              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (since ${LATEST_TAG})"
             else
               COMMIT_RANGE="HEAD"
-              echo "📊 Generating changelog for ${CHART_TAG} (first release)"
+              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (first release)"
             fi
 
-            # Generate changelog with categorized commits
+            # Generate per-chart changelog
             {
-              echo "# Changelog"
-              echo ""
-              echo "All notable changes to this chart will be documented in this file."
-              echo ""
-              echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
-              echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
+              echo "# ${chart}"
               echo ""
               echo "## [${VERSION}] - ${DATE}"
               echo ""
 
-              # Get all relevant commits for this chart since last tag
-              COMMITS=$(git log ${COMMIT_RANGE} --oneline --no-decorate -- "${CHART_PATH}" 2>/dev/null)
+              # Get file changes
+              if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
+                echo "### 📝 Changed Files"
+                echo ""
+                git diff --name-only ${PREVIOUS_TAG}..HEAD -- "${CHART_PATH}" | sort | while read file; do
+                  FILE_NAME=$(echo "$file" | sed "s|${CHART_PATH}/||")
+                  echo "- \`${FILE_NAME}\`"
+                done
+                echo ""
+              fi
+
+              # Get commits with proper descriptions
+              echo "### 🔄 Commits"
+              echo ""
+              if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
+                COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --no-merges --pretty=format:"%h|%s|%b" -- "${CHART_PATH}" 2>/dev/null)
+              else
+                COMMITS=$(git log ${COMMIT_RANGE} --no-merges --pretty=format:"%h|%s|%b" -- "${CHART_PATH}" 2>/dev/null)
+              fi
               
               if [ -z "$COMMITS" ]; then
                 echo "- No changes in this release"
               else
-                # Process commits and categorize them
-                echo "$COMMITS" | while read line; do
-                  HASH=$(echo "$line" | awk '{print $1}')
-                  MESSAGE=$(echo "$line" | cut -d' ' -f2-)
-                  
-                  # Categorize based on commit message
-                  if [[ $MESSAGE =~ ^fix|bug ]]; then
-                    ICON="🐛"
-                  elif [[ $MESSAGE =~ ^feat|feature ]]; then
-                    ICON="🚀"
-                  elif [[ $MESSAGE =~ ^docs|doc ]]; then
-                    ICON="📚"
-                  elif [[ $MESSAGE =~ ^perf|performance ]]; then
-                    ICON="⚡"
-                  elif [[ $MESSAGE =~ ^refactor|refac ]]; then
-                    ICON="🚜"
-                  else
-                    ICON="⚙️"
+                # Process commits and categorize them with better formatting
+                echo "$COMMITS" | while IFS='|' read HASH MESSAGE BODY; do
+                  # Skip empty lines
+                  if [ -z "$MESSAGE" ]; then
+                    continue
                   fi
                   
-                  echo "- ${ICON} ${MESSAGE} (${HASH})"
+                  # Categorize based on commit message
+                  if [[ $MESSAGE =~ ^fix|^fixed|bug ]]; then
+                    ICON="🐛 Bug Fix"
+                    CATEGORY="Bug Fixes"
+                  elif [[ $MESSAGE =~ ^feat|^feature ]]; then
+                    ICON="🚀 Feature"
+                    CATEGORY="Features"
+                  elif [[ $MESSAGE =~ ^docs|^doc ]]; then
+                    ICON="📚 Documentation"
+                    CATEGORY="Documentation"
+                  elif [[ $MESSAGE =~ ^perf|^performance ]]; then
+                    ICON="⚡ Performance"
+                    CATEGORY="Performance"
+                  elif [[ $MESSAGE =~ ^refactor ]]; then
+                    ICON="🚜 Refactor"
+                    CATEGORY="Refactoring"
+                  elif [[ $MESSAGE =~ ^update|^chore ]]; then
+                    ICON="⚙️ Update"
+                    CATEGORY="Updates"
+                  else
+                    ICON="✨ Change"
+                    CATEGORY="Changes"
+                  fi
+                  
+                  # Format commit with hash and message
+                  CLEAN_MSG=$(echo "$MESSAGE" | sed 's/^[a-z]*://;s/^[a-z]*(//' | sed 's/):$//')
+                  echo "- **${ICON}**: ${CLEAN_MSG} [\`${HASH}\`](https://github.com/${{ github.repository }}/commit/${HASH})"
                 done
               fi
+              
+              echo ""
+              echo "---"
+              echo ""
             } > "${CHART_PATH}/CHANGELOG.md"
+
+            # Append to root changelog
+            {
+              echo "## ${chart} - v${VERSION}"
+              echo ""
+              tail -n +2 "${CHART_PATH}/CHANGELOG.md"
+              echo ""
+            } >> CHANGELOG.md
 
             echo "✅ Changelog generated for ${chart} v${VERSION}"
           done
+
+          echo "📄 Root CHANGELOG.md updated"
 
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
       - name: Commit changelogs
         run: |
-          git add charts/*/CHANGELOG.md 2>/dev/null || true
+          git add CHANGELOG.md charts/*/CHANGELOG.md 2>/dev/null || true
           git diff --quiet --cached || (
-            git commit -m "docs(changelog): update per-chart changelogs [skip ci]"
+            git commit -m "docs(changelog): generate detailed changelogs [skip ci]"
             git push
           ) || echo "No changes to commit"
 

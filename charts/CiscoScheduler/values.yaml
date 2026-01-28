@@ -20,8 +20,6 @@ ciscoTeamSynchronizerCronJob:
        type: "RuntimeDefault"
    annotations: {}
    schedule: "*/15 * * * *"
-   failedJobsHistoryLimit: 1
-   successfulJobsHistoryLimit: 5
    startingDeadlineSeconds: 20
    concurrencyPolicy: "Forbid"
    backoffLimit: 0
@@ -55,8 +53,6 @@ ciscoTeamSynchronizerCronJob:
        value: admin
      - name: PASSWORD_ADMIN
        value: admin
-     - name: SCOPE_NAME
-       value:  Any default scope
      - name: BEARER_ONLY
        value: "true"
      - name: GROUP
