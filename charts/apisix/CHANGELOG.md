@@ -5,6 +5,11 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 apisix-2.10.1 - 2026-01-28
 🐛 Bug Fixes
+commit f717e1141e9c576fcc10bc79495fec29a824cdf6 -  (commit by @)
+Author: Muhammad-Junaid125 <Muhammad-Junaid125@users.noreply.github.com> -  (commit by @)
+Date:   Wed Jan 28 06:21:02 2026 +0000 -  (commit by @)
+ -  (commit by @)
+ -  (commit by @)
 commit 7b3700fb402e7467c051e98d5f0eb8aaea3d567a -  (commit by @)
 Author: junaid.arshad <junaid.arshad@expertflow.com> -  (commit by @)
 Date:   Wed Jan 28 11:20:40 2026 +0500 -  (commit by @)
