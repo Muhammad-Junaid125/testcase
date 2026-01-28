@@ -63,46 +63,62 @@ jobs:
       # ------------------------------------
       # Generate per-chart CHANGELOG.md
       # ------------------------------------
-      - name: Generate per-chart changelogs
+      - name: Generate per-chart CHANGELOG.md (CLEAN)
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
-          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
-
           for chart in ${{ steps.charts.outputs.charts }}; do
-            CHART_PATH="charts/$chart"
-            CHANGELOG="$CHART_PATH/CHANGELOG.md"
 
-            if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+            CHART_PATH="charts/${chart}"
+
+            if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
+              echo "Skipping ${chart} (no Chart.yaml found)"
               continue
             fi
 
-            VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
-            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | sed -n '2p')
+            VERSION="$(yq '.version' "${CHART_PATH}/Chart.yaml")"
+            DATE="$(date +%Y-%m-%d)"
 
-            RANGE="${PREV_TAG}..HEAD"
-            [ -z "$PREV_TAG" ] && RANGE="HEAD"
+            # ------------------------------------------
+            # Detect previous chart tag (e.g. apisix-2.10.0)
+            # ------------------------------------------
+            PREV_TAG="$(
+              git tag --list "${chart}-*" \
+              --sort=-v:refname \
+              | head -n 1
+            )"
 
+            if [ -n "${PREV_TAG}" ]; then
+              RANGE="${PREV_TAG}..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+
+            echo "Generating changelog for ${chart}-${VERSION}"
+            echo "Commit range: ${RANGE}"
+
+            # ------------------------------------------
+            # Write CHANGELOG.md
+            # ------------------------------------------
             {
               echo "Changelog"
               echo "All notable changes to this project will be documented in this file."
               echo
               echo "The format is based on Keep a Changelog, and this project adheres to Semantic Versioning."
               echo
-              echo "${chart}-${VERSION} - $(date +%Y-%m-%d)"
+              echo "${chart}-${VERSION} - ${DATE}"
               echo "🐛 Bug Fixes"
 
-              git log $RANGE \
+              git log ${RANGE} \
                 --no-merges \
-                -- "$CHART_PATH" \
-                --pretty=format:"%h|%s|%an" \
-              | grep -vi changelog \
-              | while IFS='|' read -r h s a; do
-                  echo "$h - $s (commit by @$a)"
-                done
-            } > "$CHANGELOG"
-          done
+                -- "${CHART_PATH}" \
+                --pretty=format:"- %h – %s (commit by @%an)" \
+                | grep -vi "changelog" || true
 
+              echo
+            } > "${CHART_PATH}/CHANGELOG.md"
+
+          done
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------

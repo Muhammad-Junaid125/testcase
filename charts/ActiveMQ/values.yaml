@@ -128,15 +128,11 @@ extraEnvVars:
      value: "6379"
    - name: REDIS_PASSWORD
      value: Expertflow123
-   - name: REDIS_SSL_ENABLED
-     value: "true"
    - name: REDIS_CLIENT_CERT
      value: "/redis/tls.crt"
    - name: REDIS_CLIENT_KEY
      value: "/redis/tls.key"
      value: "Expertflow123"
-   - name: REDIS_MAX_ACTIVE
-     value: "200"
    - name: REDIS_MAX_IDLE
      value: "200"
    - name: REDIS_MAX_WAIT
