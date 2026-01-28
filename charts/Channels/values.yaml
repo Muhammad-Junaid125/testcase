@@ -74,7 +74,7 @@ connect360:
    replicaCount: 1
    image:
       repository: cim/360-connector
-      tag: 4.9.5
+      tag: 4.9.6
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -116,7 +116,7 @@ facebook-connector:
    replicaCount: 1
    image:       
       repository: cim/facebook-connector
-      tag: 4.9.4
+      tag: 4.9.6
    efConnectionVars: false
    efEnvironmentVars: true 
    containerPorts:
@@ -127,8 +127,6 @@ facebook-connector:
         value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: LOGGING_CONFIG
         value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
-      - name: CCM_URL
-        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
       - name: FILE_ENGINE_URL
         value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
       - name: MASKING_LAYOUT_CLASS
@@ -156,7 +154,7 @@ instagram-connector:
    replicaCount: 1
    image:       
       repository: cim/instagram-connector
-      tag: 4.9.4
+      tag: 4.9.6
    efConnectionVars: false
    efEnvironmentVars: false 
    containerPorts:
