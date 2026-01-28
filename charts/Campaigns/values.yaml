@@ -118,17 +118,10 @@ campaign-studio:
    extraEnvVars:
       - name: TZ
         value: Asia/Karachi
-      - name: FQDN
-        value: '{{ .Values.global.ingressRouter }}
-      - name: ALLOW_CISCO_SELF_SIGNED_CERTS
-        value: "true"
-      - name: CISCO_PROXY
-        value: 'https://{{ .Values.globaluter }}/campaign-studio'
    siteEnvVars: []
    service:
       enabled: true
       port: 1880
-      portName: "http-0"
       targetPort: "http-sb-1880"
    ingress: { enabled: false } # Using APISIX
    extraVolumes:
