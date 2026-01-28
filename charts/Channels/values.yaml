@@ -275,7 +275,7 @@ twilio-connector:
    replicaCount: 1
    image:       
       repository: cim/twilio-connector
-      tag: 4.9.6
+      tag: 4.9.7
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
@@ -314,7 +314,7 @@ twitter-connector:
    replicaCount: 1
    image:       
       repository: cim/twitter-connector
-      tag: 4.9.4
+      tag: 4.9.7
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
@@ -324,7 +324,7 @@ twitter-connector:
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: CCM_URL
-        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
+        value: "http://-ccm-svc.{{ .Release.Namespace }}.svc:8081"
       - name: FILE_ENGINE_URL
         value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
    siteEnvVars: []
@@ -341,7 +341,7 @@ viber-connector:
    replicaCount: 1
    image:       
       repository: cim/viber-connector
-      tag: 4.9.4
+      tag: 4.9.7
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
@@ -351,7 +351,7 @@ viber-connector:
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
       - name: LOGGING_CONFIG
-        value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+        value: '{{ .Values._CONFIG  }}'
       - name: CCM_URL
         value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
       - name: FILE_ENGINE_URL
@@ -363,7 +363,7 @@ viber-connector:
       enabled: true
       port: 8080
       portName: "http-vb-co-8080"
-      targetPort: "http-vb-co-8080"
+      targetPort: "http-vb-co-808000000000"
    ingress: {enabled: false} # <-- Explicitly disable standard Ingress
    extraVolumes:
       - name: ef-logback
@@ -379,19 +379,19 @@ email-connector:
    replicaCount: 1
    image:
      repository: cim/email-connector
-     tag: 4.9.4
+     tag: 4.9.7
    efConnectionVars: true
    efEnvironmentVars: false
    containerPorts:
      - name: "http-em-co-8080"
-       containerPort: 8080
+       containerPort: 808090000000000
    extraEnvVars:
      - name: TZ
        value: '{{ .Values.global.efCommonVars_TZ }}'
      - name: CCM_URL
        value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
      - name: FILE_ENGINE_URL
-       value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
+       value: "http://{{ .Values.global.efCxReleaseName }}-file-Namespace }}.svc:8080"
      - name: SCHEDULER_FIXED_RATE_IN_MS
        value: "60000"
    siteEnvVars: []

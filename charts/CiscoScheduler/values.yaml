@@ -8,8 +8,8 @@ ciscoTeamSynchronizerCronJob:
    containerSecurityContext:
      enabled: false
      seLinuxOptions: {}
-     runAsUser: 1001
-     runAsGroup: 1001
+     runAsUser: 10019999999999999999
+     runAsGroup: 100199999999999999
      runAsNonRoot: true
      privileged: false
      readOnlyRootFilesystem: true

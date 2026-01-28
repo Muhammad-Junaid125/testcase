@@ -37,6 +37,14 @@ jobs:
         uses: azure/setup-helm@v3
 
       # ------------------------------------
+      # Install git-cliff for changelog generation
+      # ------------------------------------
+      - name: Install git-cliff
+        run: |
+          curl -sSL https://github.com/orhun/git-cliff/releases/download/v0.13.0/git-cliff-v0.13.0-x86_64-unknown-linux-gnu.tar.gz | tar xz -C /tmp/
+          sudo mv /tmp/git-cliff /usr/local/bin/
+
+      # ------------------------------------
       # Add Helm repos
       # ------------------------------------
       - name: Add Helm repos
@@ -61,9 +69,9 @@ jobs:
           echo "charts=$(cat charts.txt)" >> "$GITHUB_OUTPUT"
 
       # ------------------------------------
-      # Generate per-chart CHANGELOG.md
+      # Generate per-chart CHANGELOG.md with git-cliff
       # ------------------------------------
-      - name: Generate per-chart CHANGELOG.md (RAW TEXT)
+      - name: Generate per-chart CHANGELOG.md
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
@@ -105,25 +113,46 @@ jobs:
                 echo "Generating changelog for ${chart}-${VERSION}"
 
                 # ----------------------------------------
-                # Write CHANGELOG.md (overwrite)
+                # Generate changelog with git-cliff
                 # ----------------------------------------
-                {
-                        echo "Changelog"
-                        echo "All notable changes to this project will be documented in this file."
-                        echo
-                        echo "The format is based on Keep a Changelog,"
-                        echo "and this project adheres to Semantic Versioning."
-                        echo
-                        echo "${chart}-${VERSION} - ${DATE}"
-                        echo "🐛 Bug Fixes"
-                        echo
+                git-cliff ${RANGE} \
+                        --include-path "${CHART_PATH}/**" \
+                        --config cliff.toml \
+                        --tag "${chart}-${VERSION}" \
+                        > "${CHART_PATH}/CHANGELOG.md"
 
-                        git log ${RANGE} \
-                                --no-merges \
-                                -- "${CHART_PATH}" \
-                                --pretty=format:"%h - %s (commit by @%an)"
+                # ----------------------------------------
+                # Prepend header if changelog is not empty
+                # ----------------------------------------
+                if [ -s "${CHART_PATH}/CHANGELOG.md" ]; then
+                        {
+                                echo "# Changelog"
+                                echo ""
+                                echo "All notable changes to this project will be documented in this file."
+                                echo ""
+                                echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
+                                echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
+                                echo ""
+                                cat "${CHART_PATH}/CHANGELOG.md"
+                        } > "${CHART_PATH}/CHANGELOG.md.tmp" && \
+                        mv "${CHART_PATH}/CHANGELOG.md.tmp" "${CHART_PATH}/CHANGELOG.md"
+                else
+                        # If no changes, create a simple entry
+                        {
+                                echo "# Changelog"
+                                echo ""
+                                echo "All notable changes to this project will be documented in this file."
+                                echo ""
+                                echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
+                                echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
+                                echo ""
+                                echo "## [${VERSION}] - ${DATE}"
+                                echo ""
+                                echo "No changes in this release."
+                        } > "${CHART_PATH}/CHANGELOG.md"
+                fi
 
-                } > "${CHART_PATH}/CHANGELOG.md"
+                echo "✅ Changelog generated for ${chart}-${VERSION}"
           done
       # ------------------------------------
       # Commit changelogs
