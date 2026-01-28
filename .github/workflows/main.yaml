@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - CX-4.10.4
+      - CX-5.0-alpha
     paths:
       - 'charts/**'
 
@@ -61,19 +63,7 @@ jobs:
           echo "Changed charts: $CHANGED"
 
       # ------------------------------------
-      # Generate CHANGELOG.md (root level)
-      # ------------------------------------
-      - name: Generate CHANGELOG.md
-        uses: requarks/changelog-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          writeToFile: true
-          includeInvalidCommits: true
-          excludeTypes: build,style
-          fromTag: HEAD
-
-      # ------------------------------------
-      # Copy and generate per-chart changelogs
+      # Generate per-chart changelogs
       # ------------------------------------
       - name: Generate per-chart CHANGELOG.md
         if: steps.charts.outputs.charts != ''
@@ -88,9 +78,23 @@ jobs:
               continue
             fi
 
+            # Get chart version
             VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml" 2>/dev/null || echo "unknown")
+            CHART_TAG="${chart}-${VERSION}"
+            DATE=$(date +%Y-%m-%d)
+
+            # Get latest tag for this specific chart
+            LATEST_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1)
             
-            # Generate per-chart changelog from git log
+            if [ -n "$LATEST_TAG" ]; then
+              COMMIT_RANGE="${LATEST_TAG}..HEAD"
+              echo "📊 Generating changelog for ${CHART_TAG} (since ${LATEST_TAG})"
+            else
+              COMMIT_RANGE="HEAD"
+              echo "📊 Generating changelog for ${CHART_TAG} (first release)"
+            fi
+
+            # Generate changelog with categorized commits
             {
               echo "# Changelog"
               echo ""
@@ -99,32 +103,37 @@ jobs:
               echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
               echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
               echo ""
-              echo "## [${VERSION}] - $(date +%Y-%m-%d)"
+              echo "## [${VERSION}] - ${DATE}"
               echo ""
+
+              # Get all relevant commits for this chart since last tag
+              COMMITS=$(git log ${COMMIT_RANGE} --oneline --no-decorate -- "${CHART_PATH}" 2>/dev/null)
               
-              # Extract meaningful commits for this chart
-              git log --oneline --all --no-decorate -- "${CHART_PATH}" | head -20 | while read line; do
-                HASH=$(echo $line | awk '{print $1}')
-                MESSAGE=$(echo $line | cut -d' ' -f2-)
-                
-                # Categorize commits
-                if [[ $MESSAGE == fix* ]] || [[ $MESSAGE == *bug* ]]; then
-                  TYPE="🐛 Bug Fixes"
-                elif [[ $MESSAGE == feat* ]] || [[ $MESSAGE == *feature* ]]; then
-                  TYPE="🚀 Features"
-                elif [[ $MESSAGE == docs* ]]; then
-                  TYPE="📚 Documentation"
-                elif [[ $MESSAGE == perf* ]]; then
-                  TYPE="⚡ Performance"
-                else
-                  TYPE="⚙️ Other Changes"
-                fi
-                
-                echo "- **${MESSAGE}** (${HASH})"
-              done
-              
-              if [ $(git log --all --no-decorate -- "${CHART_PATH}" | wc -l) -eq 0 ]; then
+              if [ -z "$COMMITS" ]; then
                 echo "- No changes in this release"
+              else
+                # Process commits and categorize them
+                echo "$COMMITS" | while read line; do
+                  HASH=$(echo "$line" | awk '{print $1}')
+                  MESSAGE=$(echo "$line" | cut -d' ' -f2-)
+                  
+                  # Categorize based on commit message
+                  if [[ $MESSAGE =~ ^fix|bug ]]; then
+                    ICON="🐛"
+                  elif [[ $MESSAGE =~ ^feat|feature ]]; then
+                    ICON="🚀"
+                  elif [[ $MESSAGE =~ ^docs|doc ]]; then
+                    ICON="📚"
+                  elif [[ $MESSAGE =~ ^perf|performance ]]; then
+                    ICON="⚡"
+                  elif [[ $MESSAGE =~ ^refactor|refac ]]; then
+                    ICON="🚜"
+                  else
+                    ICON="⚙️"
+                  fi
+                  
+                  echo "- ${ICON} ${MESSAGE} (${HASH})"
+                done
               fi
             } > "${CHART_PATH}/CHANGELOG.md"
 
@@ -136,9 +145,11 @@ jobs:
       # ------------------------------------
       - name: Commit changelogs
         run: |
-          git add CHANGELOG.md charts/*/CHANGELOG.md 2>/dev/null || true
-          git commit -m "docs(changelog): update changelogs [skip ci]" || echo "No changes to commit"
-          git push || echo "Nothing to push"
+          git add charts/*/CHANGELOG.md 2>/dev/null || true
+          git diff --quiet --cached || (
+            git commit -m "docs(changelog): update per-chart changelogs [skip ci]"
+            git push
+          ) || echo "No changes to commit"
 
       # ------------------------------------
       # Release Helm charts

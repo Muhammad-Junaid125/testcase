@@ -407,7 +407,7 @@ whatsapp-connector:
    enabled: true
    replicaCount: 1
    image:
-     repository: cim/whatsapp-connector
+     repository: cim/-connector
      tag: 4.9.4
    efConnectionVars: false
    efEnvironmentVars: false
