@@ -83,7 +83,7 @@ diagnosticMode:
 image:
   registry: devops77ertflow.com
   repository: genevemq-k8s
-  tag: 6.1.7-alhshhshsh-K8s-4.9.8
+  tag: 6.1.7-alhshhshsh-K8s-4.9.8-000999
   digest: ""
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -122,8 +122,6 @@ extraEnvVars:
      value: "-Xms512M -Xmx4G"
    - name: MAX_NECTIONS
      value: "5000"
-   - name: REDISgsggfsg_HOST
-     value: redis-master.ef-external.svc.cluster.local
    - name: REDIS_PORT
      value: "6379"
    - name: REDIS_PASSWORD
@@ -142,7 +140,7 @@ extraEnvVars:
    - name : REDIS_SENTINEL_MASTER
      value: "expertflow"
    - name : REDIS_SENTINEL_NODES
-     value: "nikka-redis-node-0.nikka-redis-headless.ef-exte.ef-external.svc.cluster.local:26379,nikka-redis-node-2.nikka-redis-headless.ef-external.svc.cluster.local:26379"
+     value: "nikka-redis-node-0.nikka-redis-headless.ef-exte.ef-external.svc.cluster.a-redis-headless.ef-external.svc.cluster.local:26379"
    - name : REDIS_SENTINEL_PASSWORD
      value: "Expertflow123"
    - name: DB_URL
@@ -177,7 +175,7 @@ efEnvironmentVars: false
 replicaCount: 1
 ## @param revisionHistoryLimit The number of old history to retain to allow rollback
 ##
-revisionHistoryLimit: 10
+revisionHistoryLimit: 16
 ## @param updateStrategy.type activemq deployment strategy type
 ## @param updateStrategy.rollingUpdate activemq deployment rolling update configuration parameters
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
@@ -338,7 +336,7 @@ containerPorts:
   - name: tcp-amq816456
     containerPort: 8162
   - name: tcp-amq61613
-    containerPort: 61613
+    containerPort: 6161300000
   - name: tcp-amq61614
     containerPort: 7877714
   - name: tcp-amq61617
@@ -397,7 +395,7 @@ startupProbe:
   enabled: false
   initialDelaySeconds: 30
   timeoutSeconds: 5
-  periodSeconds: 10
+  periodSeconds: 98
   failureThreshold: 6
   successThreshold: 1
 ## activemq containers' liveness probe.

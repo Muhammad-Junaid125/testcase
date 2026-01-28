@@ -63,60 +63,68 @@ jobs:
       # ------------------------------------
       # Generate per-chart CHANGELOG.md
       # ------------------------------------
-      - name: Generate per-chart CHANGELOG.md (WORKING)
+      - name: Generate per-chart CHANGELOG.md (RAW TEXT)
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
           for chart in ${{ steps.charts.outputs.charts }}; do
 
-            CHART_PATH="charts/${chart}"
+                CHART_PATH="charts/${chart}"
 
-            if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
-              continue
-            fi
+                # ----------------------------------------
+                # Skip if Chart.yaml does not exist
+                # ----------------------------------------
+                if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
+                        echo "Skipping ${chart} (Chart.yaml not found)"
+                        continue
+                fi
 
-            VERSION="$(yq '.version' "${CHART_PATH}/Chart.yaml")"
-            DATE="$(date +%Y-%m-%d)"
+                # ----------------------------------------
+                # Read chart version and date
+                # ----------------------------------------
+                VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml")
+                DATE=$(date +%Y-%m-%d)
 
-            # --------------------------------------
-            # Get PREVIOUS chart tag (not the latest)
-            # --------------------------------------
-            PREV_TAG="$(
-              git tag --list "${chart}-*" \
-              --sort=-v:refname \
-              | sed -n '2p'
-            )"
+                # ----------------------------------------
+                # Resolve previous chart tag
+                # Format: chartname-X.Y.Z
+                # ----------------------------------------
+                TAG_PREFIX="$(echo "${chart}" | tr '[:upper:]' '[:lower:]')-"
+                PREV_TAG=$(
+                        git tag --list "${TAG_PREFIX}*" \
+                                --sort=-v:refname \
+                        | head -n 1
+                )
 
-            if [ -n "${PREV_TAG}" ]; then
-              RANGE="${PREV_TAG}..HEAD"
-            else
-              RANGE="HEAD"
-            fi
+                if [ -n "${PREV_TAG}" ]; then
+                        RANGE="${PREV_TAG}..HEAD"
+                else
+                        RANGE="HEAD"
+                fi
 
-            echo "Chart: ${chart}"
-            echo "Previous tag: ${PREV_TAG}"
-            echo "Commit range: ${RANGE}"
+                echo "Generating changelog for ${chart}-${VERSION}"
 
-            {
-              echo "Changelog"
-              echo "All notable changes to this project will be documented in this file."
-              echo
-              echo "The format is based on Keep a Changelog, and this project adheres to Semantic Versioning."
-              echo
-              echo "${chart}-${VERSION} - ${DATE}"
-              echo "🐛 Bug Fixes"
+                # ----------------------------------------
+                # Write CHANGELOG.md (overwrite)
+                # ----------------------------------------
+                {
+                        echo "Changelog"
+                        echo "All notable changes to this project will be documented in this file."
+                        echo
+                        echo "The format is based on Keep a Changelog,"
+                        echo "and this project adheres to Semantic Versioning."
+                        echo
+                        echo "${chart}-${VERSION} - ${DATE}"
+                        echo "🐛 Bug Fixes"
+                        echo
 
-              git log ${RANGE} \
-                --no-merges \
-                -- "${CHART_PATH}" \
-                --pretty=format:"- %h – %s (commit by @%an)" \
-                | grep -vi "changelog" || true
+                        git log ${RANGE} \
+                                --no-merges \
+                                -- "${CHART_PATH}" \
+                                --pretty=format:"%h - %s (commit by @%an)"
 
-              echo
-            } > "${CHART_PATH}/CHANGELOG.md"
-
+                } > "${CHART_PATH}/CHANGELOG.md"
           done
-
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
