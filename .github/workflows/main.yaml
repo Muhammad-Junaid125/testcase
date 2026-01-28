@@ -41,8 +41,10 @@ jobs:
       # ------------------------------------
       - name: Install git-cliff
         run: |
-          curl -sSL https://github.com/orhun/git-cliff/releases/download/v0.13.0/git-cliff-v0.13.0-x86_64-unknown-linux-gnu.tar.gz | tar xz -C /tmp/
+          wget -q https://github.com/orhun/git-cliff/releases/download/v0.11.3/git-cliff-x86_64-unknown-linux-gnu.tar.gz -O /tmp/git-cliff.tar.gz
+          cd /tmp && tar xzf git-cliff.tar.gz
           sudo mv /tmp/git-cliff /usr/local/bin/
+          git-cliff --version
 
       # ------------------------------------
       # Add Helm repos
