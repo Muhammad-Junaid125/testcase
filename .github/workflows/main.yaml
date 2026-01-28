@@ -1,0 +1,120 @@
+name: Release Helm Charts with Per-Chart Changelog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ------------------------------------
+      # Checkout full history
+      # ------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------
+      # Configure Git
+      # ------------------------------------
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      # ------------------------------------
+      # Install Helm
+      # ------------------------------------
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      # ------------------------------------
+      # Add Helm repos
+      # ------------------------------------
+      - name: Add Helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      # ------------------------------------
+      # Detect changed charts
+      # ------------------------------------
+      - name: Detect changed charts
+        id: charts
+        shell: bash
+        run: |
+          git diff --name-only HEAD~1 HEAD \
+            | grep '^charts/' \
+            | cut -d/ -f2 \
+            | sort -u \
+            | tr '\n' ' ' > charts.txt
+
+          echo "charts=$(cat charts.txt)" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------
+      # Generate per-chart CHANGELOG.md
+      # ------------------------------------
+      - name: Generate per-chart changelogs
+        if: steps.charts.outputs.charts != ''
+        shell: bash
+        run: |
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/$chart"
+            CHANGELOG="$CHART_PATH/CHANGELOG.md"
+
+            if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+              continue
+            fi
+
+            VERSION=$(yq '.version' "$CHART_PATH/Chart.yaml")
+            PREV_TAG=$(git tag --list "${chart}-*" --sort=-v:refname | sed -n '2p')
+
+            RANGE="${PREV_TAG}..HEAD"
+            [ -z "$PREV_TAG" ] && RANGE="HEAD"
+
+            {
+              echo "Changelog"
+              echo "All notable changes to this project will be documented in this file."
+              echo
+              echo "The format is based on Keep a Changelog, and this project adheres to Semantic Versioning."
+              echo
+              echo "${chart}-${VERSION} - $(date +%Y-%m-%d)"
+              echo "🐛 Bug Fixes"
+
+              git log $RANGE \
+                --no-merges \
+                -- "$CHART_PATH" \
+                --pretty=format:"%h|%s|%an" \
+              | grep -vi changelog \
+              | while IFS='|' read -r h s a; do
+                  echo "$h - $s (commit by @$a)"
+                done
+            } > "$CHANGELOG"
+          done
+
+      # ------------------------------------
+      # Commit changelogs
+      # ------------------------------------
+      - name: Commit changelogs
+        run: |
+          git add charts/*/CHANGELOG.md
+          git commit -m "docs(changelog): update chart changelogs [skip ci]" || true
+          git push
+
+      # ------------------------------------
+      # Release charts
+      # ------------------------------------
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

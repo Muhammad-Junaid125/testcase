@@ -61,12 +61,12 @@ image:
   pullPolicy: IfNotPresent
   # -- Apache APISIX image tag
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 3.11.0-debian
+  tag: 3.11.0-debian-31
 
 # -- set false to use `Deployment`, set true to use `DaemonSet`
 useDaemonSet: false
 # -- if useDaemonSet is true or autoscaling.enabled is true, replicaCount not become effective
-replicaCount: 1
+replicaCount: 2
 
 # -- Set [priorityClassName](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#pod-priority) for Apache APISIX pods
 priorityClassName: ""
@@ -101,7 +101,7 @@ resources:
     cpu: "256m"
     memory: "512Mi"
   limits:
-    cpu: "512m"
+    cpu: "518m"
     memory: "1Gi"
 
   # -- Use the host's network namespace
