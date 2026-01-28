@@ -38,7 +38,7 @@ global:
 
         jwt_claims_valid if {
             startswith(input.request.headers.authorization, "Bearer ")
-            token := split(input.request.headers.authorization, " ")[1]
+            token := split(input.s.authorization, " ")[1]
             [is_valid, header, payload] := io.jwt.decode_verify(token, { "cert": "" })
             is_valid
 
@@ -61,7 +61,7 @@ image:
   pullPolicy: IfNotPresent
   # -- Apache APISIX image tag
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 3.11.0-debian-31
+  tag: 3.11.0-debian-31-32
 
 # -- set false to use `Deployment`, set true to use `DaemonSet`
 useDaemonSet: false
@@ -155,7 +155,7 @@ extraDeploy: []
 
 # -- Additional `volume`, See [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) for the detail.
 extraVolumes: 
-  - name: apisix-cache-volume
+  - name: apisix-cache-volume-ssd
     emptyDir:
      sizeLimit: 2Gi
 

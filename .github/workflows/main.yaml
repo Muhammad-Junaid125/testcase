@@ -63,7 +63,7 @@ jobs:
       # ------------------------------------
       # Generate per-chart CHANGELOG.md
       # ------------------------------------
-      - name: Generate per-chart CHANGELOG.md (CLEAN)
+      - name: Generate per-chart CHANGELOG.md (WORKING)
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
@@ -72,20 +72,19 @@ jobs:
             CHART_PATH="charts/${chart}"
 
             if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
-              echo "Skipping ${chart} (no Chart.yaml found)"
               continue
             fi
 
             VERSION="$(yq '.version' "${CHART_PATH}/Chart.yaml")"
             DATE="$(date +%Y-%m-%d)"
 
-            # ------------------------------------------
-            # Detect previous chart tag (e.g. apisix-2.10.0)
-            # ------------------------------------------
+            # --------------------------------------
+            # Get PREVIOUS chart tag (not the latest)
+            # --------------------------------------
             PREV_TAG="$(
               git tag --list "${chart}-*" \
               --sort=-v:refname \
-              | head -n 1
+              | sed -n '2p'
             )"
 
             if [ -n "${PREV_TAG}" ]; then
@@ -94,12 +93,10 @@ jobs:
               RANGE="HEAD"
             fi
 
-            echo "Generating changelog for ${chart}-${VERSION}"
+            echo "Chart: ${chart}"
+            echo "Previous tag: ${PREV_TAG}"
             echo "Commit range: ${RANGE}"
 
-            # ------------------------------------------
-            # Write CHANGELOG.md
-            # ------------------------------------------
             {
               echo "Changelog"
               echo "All notable changes to this project will be documented in this file."
@@ -119,6 +116,7 @@ jobs:
             } > "${CHART_PATH}/CHANGELOG.md"
 
           done
+
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
