@@ -234,7 +234,7 @@ telegram-connector:
    replicaCount: 1
    image:       
       repository: cim/telegram-connector
-      tag: 4.9.4
+      tag: 4.9.6
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
@@ -275,7 +275,7 @@ twilio-connector:
    replicaCount: 1
    image:       
       repository: cim/twilio-connector
-      tag: 4.9.4
+      tag: 4.9.6
    efConnectionVars: false
    efEnvironmentVars: false
    containerPorts:
