@@ -39,7 +39,7 @@ externalEtcd:
 dashboard:
   enabled: false
 ingress-controller:
-  enabled: false
+  enabled: true
 serviceAccount:
   create: true      
 rbac:
