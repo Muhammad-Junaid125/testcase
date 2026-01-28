@@ -1,4 +1,4 @@
-name: Release Helm Charts with Per-Chart Changelog
+name: Release Helm Charts with Changelog
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       # ------------------------------------
       # Checkout full history
       # ------------------------------------
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -37,16 +37,6 @@ jobs:
         uses: azure/setup-helm@v3
 
       # ------------------------------------
-      # Install git-cliff for changelog generation
-      # ------------------------------------
-      - name: Install git-cliff
-        run: |
-          wget -q https://github.com/orhun/git-cliff/releases/download/v0.11.3/git-cliff-x86_64-unknown-linux-gnu.tar.gz -O /tmp/git-cliff.tar.gz
-          cd /tmp && tar xzf git-cliff.tar.gz
-          sudo mv /tmp/git-cliff /usr/local/bin/
-          git-cliff --version
-
-      # ------------------------------------
       # Add Helm repos
       # ------------------------------------
       - name: Add Helm repos
@@ -62,111 +52,96 @@ jobs:
         id: charts
         shell: bash
         run: |
-          git diff --name-only HEAD~1 HEAD \
-            | grep '^charts/' \
-            | cut -d/ -f2 \
-            | sort -u \
-            | tr '\n' ' ' > charts.txt
-
-          echo "charts=$(cat charts.txt)" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep '^charts/' | cut -d/ -f2 | sort -u | tr '\n' ' ')
+          else
+            CHANGED=$(find charts -maxdepth 1 -type d | cut -d/ -f2 | grep -v '^$' | tr '\n' ' ')
+          fi
+          echo "charts=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Changed charts: $CHANGED"
 
       # ------------------------------------
-      # Generate per-chart CHANGELOG.md with git-cliff
+      # Generate CHANGELOG.md (root level)
+      # ------------------------------------
+      - name: Generate CHANGELOG.md
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          writeToFile: true
+          includeInvalidCommits: true
+          excludeTypes: build,style
+          fromTag: HEAD
+
+      # ------------------------------------
+      # Copy and generate per-chart changelogs
       # ------------------------------------
       - name: Generate per-chart CHANGELOG.md
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
           for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/${chart}"
 
-                CHART_PATH="charts/${chart}"
+            # Skip if Chart.yaml doesn't exist
+            if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
+              echo "⏭️ Skipping ${chart} (Chart.yaml not found)"
+              continue
+            fi
 
-                # ----------------------------------------
-                # Skip if Chart.yaml does not exist
-                # ----------------------------------------
-                if [ ! -f "${CHART_PATH}/Chart.yaml" ]; then
-                        echo "Skipping ${chart} (Chart.yaml not found)"
-                        continue
-                fi
-
-                # ----------------------------------------
-                # Read chart version and date
-                # ----------------------------------------
-                VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml")
-                DATE=$(date +%Y-%m-%d)
-
-                # ----------------------------------------
-                # Resolve previous chart tag
-                # Format: chartname-X.Y.Z
-                # ----------------------------------------
-                TAG_PREFIX="$(echo "${chart}" | tr '[:upper:]' '[:lower:]')-"
-                PREV_TAG=$(
-                        git tag --list "${TAG_PREFIX}*" \
-                                --sort=-v:refname \
-                        | head -n 1
-                )
-
-                if [ -n "${PREV_TAG}" ]; then
-                        RANGE="${PREV_TAG}..HEAD"
+            VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml" 2>/dev/null || echo "unknown")
+            
+            # Generate per-chart changelog from git log
+            {
+              echo "# Changelog"
+              echo ""
+              echo "All notable changes to this chart will be documented in this file."
+              echo ""
+              echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
+              echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
+              echo ""
+              echo "## [${VERSION}] - $(date +%Y-%m-%d)"
+              echo ""
+              
+              # Extract meaningful commits for this chart
+              git log --oneline --all --no-decorate -- "${CHART_PATH}" | head -20 | while read line; do
+                HASH=$(echo $line | awk '{print $1}')
+                MESSAGE=$(echo $line | cut -d' ' -f2-)
+                
+                # Categorize commits
+                if [[ $MESSAGE == fix* ]] || [[ $MESSAGE == *bug* ]]; then
+                  TYPE="🐛 Bug Fixes"
+                elif [[ $MESSAGE == feat* ]] || [[ $MESSAGE == *feature* ]]; then
+                  TYPE="🚀 Features"
+                elif [[ $MESSAGE == docs* ]]; then
+                  TYPE="📚 Documentation"
+                elif [[ $MESSAGE == perf* ]]; then
+                  TYPE="⚡ Performance"
                 else
-                        RANGE="HEAD"
+                  TYPE="⚙️ Other Changes"
                 fi
+                
+                echo "- **${MESSAGE}** (${HASH})"
+              done
+              
+              if [ $(git log --all --no-decorate -- "${CHART_PATH}" | wc -l) -eq 0 ]; then
+                echo "- No changes in this release"
+              fi
+            } > "${CHART_PATH}/CHANGELOG.md"
 
-                echo "Generating changelog for ${chart}-${VERSION}"
-
-                # ----------------------------------------
-                # Generate changelog with git-cliff
-                # ----------------------------------------
-                git-cliff ${RANGE} \
-                        --include-path "${CHART_PATH}/**" \
-                        --config cliff.toml \
-                        --tag "${chart}-${VERSION}" \
-                        > "${CHART_PATH}/CHANGELOG.md"
-
-                # ----------------------------------------
-                # Prepend header if changelog is not empty
-                # ----------------------------------------
-                if [ -s "${CHART_PATH}/CHANGELOG.md" ]; then
-                        {
-                                echo "# Changelog"
-                                echo ""
-                                echo "All notable changes to this project will be documented in this file."
-                                echo ""
-                                echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
-                                echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
-                                echo ""
-                                cat "${CHART_PATH}/CHANGELOG.md"
-                        } > "${CHART_PATH}/CHANGELOG.md.tmp" && \
-                        mv "${CHART_PATH}/CHANGELOG.md.tmp" "${CHART_PATH}/CHANGELOG.md"
-                else
-                        # If no changes, create a simple entry
-                        {
-                                echo "# Changelog"
-                                echo ""
-                                echo "All notable changes to this project will be documented in this file."
-                                echo ""
-                                echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
-                                echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
-                                echo ""
-                                echo "## [${VERSION}] - ${DATE}"
-                                echo ""
-                                echo "No changes in this release."
-                        } > "${CHART_PATH}/CHANGELOG.md"
-                fi
-
-                echo "✅ Changelog generated for ${chart}-${VERSION}"
+            echo "✅ Changelog generated for ${chart} v${VERSION}"
           done
+
       # ------------------------------------
       # Commit changelogs
       # ------------------------------------
       - name: Commit changelogs
         run: |
-          git add charts/*/CHANGELOG.md
-          git commit -m "docs(changelog): update chart changelogs [skip ci]" || true
-          git push
+          git add CHANGELOG.md charts/*/CHANGELOG.md 2>/dev/null || true
+          git commit -m "docs(changelog): update changelogs [skip ci]" || echo "No changes to commit"
+          git push || echo "Nothing to push"
 
       # ------------------------------------
-      # Release charts
+      # Release Helm charts
       # ------------------------------------
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0

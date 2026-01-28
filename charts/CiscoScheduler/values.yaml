@@ -35,10 +35,6 @@ ciscoTeamSynchronizerCronJob:
        value: expertflow
      - name: AUTH_SERVER_URL
        value:  https://cim-dev2.expertflow.com/auth/
-     - name: SSL_REQUIRED
-       value: external
-     - name: RESOURCE
-       value: cim
      - name: VERIFY_TOKEN_AUDIENCE
        value: "false"
      - name: SECRET
