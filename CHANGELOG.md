@@ -1,12 +1,44 @@
-# Changelog
-All notable changes to this project will be documented in this file.
+# Helm Charts Changelog
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to Helm charts will be documented in this file.
 
-## [agent-desk-5.0.3] - 2026-01-21
-### :bug: Bug Fixes
-- [`d2a3738`](https://github.com/Muhammad-Junaid125/testcase/commit/d2a37384b8afb047848b79500ad5c67574c7e85f) - port name *(commit by [@Muhammad-Junaid125](https://github.com/Muhammad-Junaid125))*
-- [`7944867`](https://github.com/Muhammad-Junaid125/testcase/commit/7944867cc5dcf3c77d116d048e69692d5864ce54) - variavbles in the Chart *(commit by [@Muhammad-Junaid125](https://github.com/Muhammad-Junaid125))*
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
-[agent-desk-5.0.3]: https://github.com/Muhammad-Junaid125/testcase/compare/agent-desk-5.0.2...agent-desk-5.0.3
+## Channels - v4.9.8
+
+
+## [4.9.8] - 2026-01-28
+
+### 🔄 Commits
+
+- **🐛 Bug Fix**:  cisco [`f7cffba`](https://github.com/Muhammad-Junaid125/testcase/commit/f7cffba)
+- **📚 Documentation**: changelog): update per-chart changelogs [skip ci] [`a66618c`](https://github.com/Muhammad-Junaid125/testcase/commit/a66618c)
+- **✨ Change**: whatsapp [`e8f52a2`](https://github.com/Muhammad-Junaid125/testcase/commit/e8f52a2)
+- **✨ Change**: channelapi [`7370279`](https://github.com/Muhammad-Junaid125/testcase/commit/7370279)
+- **✨ Change**: new hel chart [`78417aa`](https://github.com/Muhammad-Junaid125/testcase/commit/78417aa)
+- **✨ Change**: with skip item [`8f66a80`](https://github.com/Muhammad-Junaid125/testcase/commit/8f66a80)
+- **✨ Change**: channels [`6d8ceff`](https://github.com/Muhammad-Junaid125/testcase/commit/6d8ceff)
+- **🐛 Bug Fix**:  sudo fix [`1ec022d`](https://github.com/Muhammad-Junaid125/testcase/commit/1ec022d)
+- **📚 Documentation**: changelog): update helm chart changelogs [skip ci] [`416425f`](https://github.com/Muhammad-Junaid125/testcase/commit/416425f)
+- **✨ Change**: multiple helm charts [`171f73d`](https://github.com/Muhammad-Junaid125/testcase/commit/171f73d)
+
+---
+
+
+## CiscoScheduler - v4.7.2
+
+
+## [4.7.2] - 2026-01-28
+
+### 🔄 Commits
+
+- **🐛 Bug Fix**:  cisco [`f7cffba`](https://github.com/Muhammad-Junaid125/testcase/commit/f7cffba)
+- **✨ Change**: requarks [`38c8c9c`](https://github.com/Muhammad-Junaid125/testcase/commit/38c8c9c)
+- **✨ Change**: new hel chart [`78417aa`](https://github.com/Muhammad-Junaid125/testcase/commit/78417aa)
+- **📚 Documentation**: changelog): update helm chart changelogs [skip ci] [`416425f`](https://github.com/Muhammad-Junaid125/testcase/commit/416425f)
+- **✨ Change**: multiple helm charts [`171f73d`](https://github.com/Muhammad-Junaid125/testcase/commit/171f73d)
+
+---
+
+
