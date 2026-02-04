@@ -535,7 +535,7 @@ conversation-manager:
          - name: MASK_ATTRIBUTES_PATH
            value: '{{ .Values.global.efCommonVars_MASK_ATTRIBUTES_PATH }}'
          - name: LOGGING_CONFIG
-           value: '{{ .Values.global.efCommonVars_LOGGING_CONFIG  }}'
+           value: '{{ .Values_LOGGING_CONFIG  }}'
          - name: CONVERSATION_SEARCH_WINDOW_HRS
            value: '{{ .Values.global.efCommonVars_CONVERSATION_SEARCH_WINDOW_HRS  }}'
          - name: PORT

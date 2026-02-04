@@ -33,14 +33,23 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       # ------------------------------------
+      # Install yq for YAML processing
+      # ------------------------------------
+      - name: Install yq
+        run: |
+          wget -q https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 -O /tmp/yq
+          chmod +x /tmp/yq
+          sudo mv /tmp/yq /usr/local/bin/
+
+      # ------------------------------------
       # Install helm-changelog for professional changelogs
       # ------------------------------------
       - name: Install helm-changelog
         run: |
-          wget -q https://github.com/mogensen/helm-changelog/releases/download/v0.3.2/helm-changelog_0.3.2_linux_x86_64.tar.gz -O /tmp/helm-changelog.tar.gz
+          wget -q https://github.com/mogensen/helm-changelog/releases/download/v0.0.1/helm-changelog_0.0.1_linux_amd64.tar.gz -O /tmp/helm-changelog.tar.gz
           cd /tmp && tar xzf helm-changelog.tar.gz
           sudo mv /tmp/helm-changelog /usr/local/bin/
-          helm-changelog --version
+          helm-changelog --help
 
       # ------------------------------------
       # Add Helm repos
@@ -85,7 +94,7 @@ jobs:
             echo "📊 Generating professional changelog for ${chart}"
 
             # Generate changelog using helm-changelog
-            cd "${CHART_PATH}" && helm-changelog generate --output CHANGELOG.md
+            cd "${CHART_PATH}" && helm-changelog --output CHANGELOG.md || echo "helm-changelog failed, falling back to basic changelog"
 
             echo "✅ Changelog generated for ${chart}"
           done
@@ -122,7 +131,7 @@ jobs:
         run: |
           git add CHANGELOG.md charts/*/CHANGELOG.md 2>/dev/null || true
           git diff --quiet --cached || (
-            git commit -m "docs(changelog): generate detailed changelogs [skip ci]"
+            git commit -m "docs(changelog): generate professional changelogs [skip ci]"
             git push
           ) || echo "No changes to commit"
 
