@@ -250,7 +250,7 @@ bot-framework:
     replicaCount: 1
     image:
         repository: cim/bot-framework
-        tag: 4.9.4
+        tag: 4.9.5
     efConnectionVars: true
     efEnvironmentVars: false
     containerPorts:
@@ -317,7 +317,7 @@ ccm:
     replicaCount: 1
     image:
         repository: cim/customer-channel-manager
-        tag: 4.9.4
+        tag: 4.9.5
     efConnectionVars: true
     efEnvironmentVars: true
     containerPorts:
@@ -334,8 +334,6 @@ ccm:
           value: "http://{{ .Release.Name }}-cim-customer-svc.{{ .Release.Namespace }}.svc:8080"
         - name: MONGODB_DATABASE
           value: "ccm_db"
-        - name: ROOT_LOG_LEVEL
-          value: "info"
         - name: TOPIC_MANAGER_URL
           value: "http://{{ .Release.Name }}-conversation-manager-svc.{{ .Release.Namespace }}.svc:8080"
         - name: CONVERSATION_MANAGER_URL
@@ -388,7 +386,7 @@ cim-customer:
     replicaCount: 1
     image:
        repository: cim/cim-backend
-       tag: 4.9.3
+       tag: 4.9.5
     efConnectionVars: true
     efEnvironmentVars: false
     containerPorts:
@@ -435,8 +433,6 @@ conversation-manager:
           value: '{{ .Values.global.efCommonVars_WRAPUP_TIME  }}'
         - name: DEFAULT_ROOM_NAME
           value: '{{ .Values.global.efCommonVars_DEFAULT_ROOM_NAME }}'
-        - name: DEFAULT_ROOM_DESCRIPTION
-          value: '{{ .Values.global.efCommonVars_DEFAULT_ROOM_DESCRIPTION  }}'
         - name: DEFAULT_ROOM_LABEL
           value: '{{ .Values.global.efCommonVars_DEFAULT_ROOM_LABEL  }}'
         - name: ROOM_IS_USER_ID
@@ -510,9 +506,9 @@ conversation-manager:
           configMap:
             name: ef-conversation-controller-actions-pycache-cm
             optional: true
-        - name: ef-conversation-controller-utils
+        - name: ef-conversation
           configMap:
-            name: ef-conversation-controller-actions-utils-cm
+            name: ef-conversation-controller
             optional: true
     extraVolumeMounts:
         - name: redis-crt

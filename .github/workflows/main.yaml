@@ -33,10 +33,14 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       # ------------------------------------
-      # Install Helm
+      # Install helm-changelog for professional changelogs
       # ------------------------------------
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+      - name: Install helm-changelog
+        run: |
+          wget -q https://github.com/mogensen/helm-changelog/releases/download/v0.3.2/helm-changelog_0.3.2_linux_x86_64.tar.gz -O /tmp/helm-changelog.tar.gz
+          cd /tmp && tar xzf helm-changelog.tar.gz
+          sudo mv /tmp/helm-changelog /usr/local/bin/
+          helm-changelog --version
 
       # ------------------------------------
       # Add Helm repos
@@ -63,23 +67,12 @@ jobs:
           echo "Changed charts: $CHANGED"
 
       # ------------------------------------
-      # Generate detailed per-chart changelogs
+      # Generate professional changelogs with helm-changelog
       # ------------------------------------
       - name: Generate per-chart CHANGELOG.md
         if: steps.charts.outputs.charts != ''
         shell: bash
         run: |
-          # Initialize root changelog
-          {
-            echo "# Helm Charts Changelog"
-            echo ""
-            echo "All notable changes to Helm charts will be documented in this file."
-            echo ""
-            echo "The format is based on [Keep a Changelog](https://keepachangelog.com/),"
-            echo "and this project adheres to [Semantic Versioning](https://semver.org/)."
-            echo ""
-          } > CHANGELOG.md
-
           for chart in ${{ steps.charts.outputs.charts }}; do
             CHART_PATH="charts/${chart}"
 
@@ -89,111 +82,38 @@ jobs:
               continue
             fi
 
-            # Get chart version
-            VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml" 2>/dev/null || echo "unknown")
-            DATE=$(date +%Y-%m-%d)
+            echo "📊 Generating professional changelog for ${chart}"
 
-            # Get last 2 tags for this chart
-            TAGS=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 2)
-            TAG_ARRAY=($TAGS)
-            LATEST_TAG="${TAG_ARRAY[0]}"
-            PREVIOUS_TAG="${TAG_ARRAY[1]}"
-            
-            if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
-              COMMIT_RANGE="${PREVIOUS_TAG}..${LATEST_TAG}"
-              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (${PREVIOUS_TAG} → ${LATEST_TAG})"
-            elif [ -n "$LATEST_TAG" ]; then
-              COMMIT_RANGE="${LATEST_TAG}..HEAD"
-              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (since ${LATEST_TAG})"
-            else
-              COMMIT_RANGE="HEAD"
-              echo "📊 Generating detailed changelog for ${chart} v${VERSION} (first release)"
-            fi
+            # Generate changelog using helm-changelog
+            cd "${CHART_PATH}" && helm-changelog generate --output CHANGELOG.md
 
-            # Generate per-chart changelog
-            {
-              echo "# ${chart}"
-              echo ""
-              echo "## [${VERSION}] - ${DATE}"
-              echo ""
-
-              # Get file changes
-              if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
-                echo "### 📝 Changed Files"
-                echo ""
-                git diff --name-only ${PREVIOUS_TAG}..HEAD -- "${CHART_PATH}" | sort | while read file; do
-                  FILE_NAME=$(echo "$file" | sed "s|${CHART_PATH}/||")
-                  echo "- \`${FILE_NAME}\`"
-                done
-                echo ""
-              fi
-
-              # Get commits with proper descriptions
-              echo "### 🔄 Commits"
-              echo ""
-              if [ -n "$LATEST_TAG" ] && [ -n "$PREVIOUS_TAG" ]; then
-                COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --no-merges --pretty=format:"%h|%s|%b" -- "${CHART_PATH}" 2>/dev/null)
-              else
-                COMMITS=$(git log ${COMMIT_RANGE} --no-merges --pretty=format:"%h|%s|%b" -- "${CHART_PATH}" 2>/dev/null)
-              fi
-              
-              if [ -z "$COMMITS" ]; then
-                echo "- No changes in this release"
-              else
-                # Process commits and categorize them with better formatting
-                echo "$COMMITS" | while IFS='|' read HASH MESSAGE BODY; do
-                  # Skip empty lines
-                  if [ -z "$MESSAGE" ]; then
-                    continue
-                  fi
-                  
-                  # Categorize based on commit message
-                  if [[ $MESSAGE =~ ^fix|^fixed|bug ]]; then
-                    ICON="🐛 Bug Fix"
-                    CATEGORY="Bug Fixes"
-                  elif [[ $MESSAGE =~ ^feat|^feature ]]; then
-                    ICON="🚀 Feature"
-                    CATEGORY="Features"
-                  elif [[ $MESSAGE =~ ^docs|^doc ]]; then
-                    ICON="📚 Documentation"
-                    CATEGORY="Documentation"
-                  elif [[ $MESSAGE =~ ^perf|^performance ]]; then
-                    ICON="⚡ Performance"
-                    CATEGORY="Performance"
-                  elif [[ $MESSAGE =~ ^refactor ]]; then
-                    ICON="🚜 Refactor"
-                    CATEGORY="Refactoring"
-                  elif [[ $MESSAGE =~ ^update|^chore ]]; then
-                    ICON="⚙️ Update"
-                    CATEGORY="Updates"
-                  else
-                    ICON="✨ Change"
-                    CATEGORY="Changes"
-                  fi
-                  
-                  # Format commit with hash and message
-                  CLEAN_MSG=$(echo "$MESSAGE" | sed 's/^[a-z]*://;s/^[a-z]*(//' | sed 's/):$//')
-                  echo "- **${ICON}**: ${CLEAN_MSG} [\`${HASH}\`](https://github.com/${{ github.repository }}/commit/${HASH})"
-                done
-              fi
-              
-              echo ""
-              echo "---"
-              echo ""
-            } > "${CHART_PATH}/CHANGELOG.md"
-
-            # Append to root changelog
-            {
-              echo "## ${chart} - v${VERSION}"
-              echo ""
-              tail -n +2 "${CHART_PATH}/CHANGELOG.md"
-              echo ""
-            } >> CHANGELOG.md
-
-            echo "✅ Changelog generated for ${chart} v${VERSION}"
+            echo "✅ Changelog generated for ${chart}"
           done
 
-          echo "📄 Root CHANGELOG.md updated"
+      # ------------------------------------
+      # Generate root CHANGELOG.md
+      # ------------------------------------
+      - name: Generate root CHANGELOG.md
+        run: |
+          echo "# Helm Charts Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "All notable changes to Helm charts will be documented in this file." >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "Autogenerated from Helm Chart and git history using [helm-changelog](https://github.com/mogensen/helm-changelog)" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+          # Append each chart's changelog to root
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            CHART_PATH="charts/${chart}"
+            if [ -f "${CHART_PATH}/Chart.yaml" ] && [ -f "${CHART_PATH}/CHANGELOG.md" ]; then
+              echo "## ${chart}" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+              cat "${CHART_PATH}/CHANGELOG.md" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+              echo "---" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+            fi
+          done
 
       # ------------------------------------
       # Commit changelogs
