@@ -1,9 +1,11 @@
 # Channels
 
-## [4.9.8] - 2026-01-28
+## [4.9.9] - 2026-02-04
 
 ### 🔄 Commits
 
+- **⚙️ Update**: updated helm charts Activemq and Channel [`54541c4`](https://github.com/Muhammad-Junaid125/testcase/commit/54541c4)
+- **📚 Documentation**: changelog): generate detailed changelogs [skip ci] [`706d06a`](https://github.com/Muhammad-Junaid125/testcase/commit/706d06a)
 - **🐛 Bug Fix**:  cisco [`f7cffba`](https://github.com/Muhammad-Junaid125/testcase/commit/f7cffba)
 - **📚 Documentation**: changelog): update per-chart changelogs [skip ci] [`a66618c`](https://github.com/Muhammad-Junaid125/testcase/commit/a66618c)
 - **✨ Change**: whatsapp [`e8f52a2`](https://github.com/Muhammad-Junaid125/testcase/commit/e8f52a2)
