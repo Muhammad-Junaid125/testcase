@@ -3,6 +3,24 @@ entries:
   activemq:
   - apiVersion: v2
     appVersion: 4.10.2
+    created: "2026-02-04T10:25:40.002350897Z"
+    description: Expertflow CX Solution ActiveMQ
+    digest: 0f982d38ac037eee6e3b805707d9e5609903903a7ec5a7b1814f7e08bd3fceac
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: activemq
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/activemq-4.10.3/activemq-4.10.3.tgz
+    version: 4.10.3
+  - apiVersion: v2
+    appVersion: 4.10.2
     created: "2026-02-04T10:11:45.94826797Z"
     description: Expertflow CX Solution ActiveMQ
     digest: 60e9c05fb8bcc23618cf28d425af2017b433c82e6fb3f2a23c5b515e63228c46
@@ -388,6 +406,37 @@ entries:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/apisix-2.10.0/apisix-2.10.0.tgz
     version: 2.10.0
   campaigns:
+  - apiVersion: v2
+    appVersion: 4.10.0
+    created: "2026-02-04T10:25:40.525270604Z"
+    dependencies:
+    - condition: campaigns-backend.enabled
+      name: campaigns-backend
+      repository: file://charts/campaigns-backend
+      version: 1.0.0
+    - condition: campaign-studio.enabled
+      name: campaign-studio
+      repository: file://charts/campaign-studio
+      version: 1.0.0
+    - condition: scheduled-activities.enabled
+      name: scheduled-activities
+      repository: file://charts/scheduled-activities
+      version: 1.0.0
+    description: Expertflow CX Solution Campaigns
+    digest: bcae4adb002693f1f92ad073619ed152109cc5a99fa5029edb366b28ef7e2ee9
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: campaigns
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/campaigns-4.10.0/campaigns-4.10.0.tgz
+    version: 4.10.0
   - apiVersion: v2
     appVersion: 4.9.0
     created: "2026-01-27T12:14:22.273285721Z"
@@ -914,6 +963,24 @@ entries:
   clamav:
   - apiVersion: v2
     appVersion: 4.9.0
+    created: "2026-02-04T10:25:41.471197239Z"
+    description: Expertflow CX Solution
+    digest: 6ea0c47e856f973a179d88afdb3f0a91825602c30bdd730d8a5f97eec469ed1a
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: clamav
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/clamav-4.9.2/clamav-4.9.2.tgz
+    version: 4.9.2
+  - apiVersion: v2
+    appVersion: 4.9.0
     created: "2026-02-04T10:11:46.142901569Z"
     description: Expertflow CX Solution
     digest: b3d2a52b73bb0ce2dc62a7cf68686515fb96e5dce870bec97fe176621d7a6ff2
@@ -1193,6 +1260,24 @@ entries:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-4.9.3/eleveo-4.9.3.tgz
     version: 4.9.3
   eleveo-middleware:
+  - apiVersion: v2
+    appVersion: 4.8.0
+    created: "2026-02-04T10:25:42.510002693Z"
+    description: Expertflow CX Solution
+    digest: b9fca6be567b11c0bfd37f6cf234b42cf83227de4c5d18069c56faff3d6d0d19
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: eleveo-middleware
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-middleware-4.8.2/eleveo-middleware-4.8.2.tgz
+    version: 4.8.2
   - apiVersion: v2
     appVersion: 4.8.0
     created: "2026-02-04T10:11:46.384013725Z"
@@ -1578,4 +1663,4 @@ entries:
     urls:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/qm-4.8.0/qm-4.8.0.tgz
     version: 4.8.0
-generated: "2026-02-04T10:11:46.384101888Z"
+generated: "2026-02-04T10:25:44.834964735Z"
