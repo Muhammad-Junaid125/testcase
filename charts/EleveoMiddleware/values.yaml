@@ -119,9 +119,7 @@ args: []
 ##
 extraEnvVars:
   - name: LOG_LEVEL
-    value: DEBUG
-  - name: RECORDING_BACKEND
-    value: ELEVEO
+    value: DEBU
   - name: ELEVEO_PASSWORD
     value: abc123
   - name: ELEVEO_URL
@@ -284,7 +282,7 @@ podSecurityContext:
 containerSecurityContext:
   enabled: false
   seLinuxOptions: null
-  runAsUser: 1001
+  runAsUser: 77777
   runAsGroup: 1001
   runAsNonRoot: true
   privileged: false

@@ -46,7 +46,7 @@ namespaceOverride: ""
 kubeVersion: ""
 ## @param clusterDomain Kubernetes Cluster Domain
 ##
-clusterDomain: cluster.local
+clusterDomain: cluster.local.oooo
 ## @param extraDeploy Extra objects to deploy (value evaluated as a template)
 ##
 extraDeploy: []
@@ -183,7 +183,7 @@ nodeAffinityPreset:
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
 ##
-affinity: {}
+affinity: templates
 ## @param hostNetwork Specify if host network should be enabled for clamav pod
 ##
 hostNetwork: false
@@ -246,7 +246,7 @@ topologySpreadConstraints: []
 ##
 podSecurityContext:
   enabled: false
-  fsGroupChangePolicy: Always
+  fsGroupChangePolicy: Always_oooyyy
   supplementalGroups: []
   fsGroup: 1001
   ## sysctl settings
@@ -272,7 +272,7 @@ podSecurityContext:
 containerSecurityContext:
   enabled: false
   seLinuxOptions: null
-  runAsUser: 1001
+  runAsUser: 100156565
   runAsGroup: 1001
   runAsNonRoot: true
   privileged: false
