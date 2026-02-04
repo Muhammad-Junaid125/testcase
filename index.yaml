@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   activemq:
   - apiVersion: v2
+    appVersion: 4.10.2
+    created: "2026-02-04T10:11:45.94826797Z"
+    description: Expertflow CX Solution ActiveMQ
+    digest: 60e9c05fb8bcc23618cf28d425af2017b433c82e6fb3f2a23c5b515e63228c46
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: activemq
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/activemq-4.10.2/activemq-4.10.2.tgz
+    version: 4.10.2
+  - apiVersion: v2
     appVersion: 4.10.0
     created: "2026-02-04T06:23:17.232109325Z"
     description: Expertflow CX Solution ActiveMQ
@@ -896,6 +914,24 @@ entries:
   clamav:
   - apiVersion: v2
     appVersion: 4.9.0
+    created: "2026-02-04T10:11:46.142901569Z"
+    description: Expertflow CX Solution
+    digest: b3d2a52b73bb0ce2dc62a7cf68686515fb96e5dce870bec97fe176621d7a6ff2
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: clamav
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/clamav-4.9.1/clamav-4.9.1.tgz
+    version: 4.9.1
+  - apiVersion: v2
+    appVersion: 4.9.0
     created: "2026-01-27T10:38:58.328810988Z"
     description: Expertflow CX Solution
     digest: b4bc33c4950e3890c4d63a05be494c7ad3865e5ee30001ab3e16f75702b6d7dc
@@ -1157,6 +1193,24 @@ entries:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-4.9.3/eleveo-4.9.3.tgz
     version: 4.9.3
   eleveo-middleware:
+  - apiVersion: v2
+    appVersion: 4.8.0
+    created: "2026-02-04T10:11:46.384013725Z"
+    description: Expertflow CX Solution
+    digest: 1f81d99457fb0fde4f01f183db45fad20bc935f91ec8e476d023c8453efb8145
+    home: https://expertflow.com
+    icon: https://www.expertflow.com/wp-content/uploads/cropped-favicon-expertflow-32x32.png
+    keywords:
+    - Expertflow
+    - C2C Communications
+    maintainers:
+    - email: nasir.mehmood@expertflow.com
+      name: NMR Nasir Mehmood Rajput
+    name: eleveo-middleware
+    type: application
+    urls:
+    - https://github.com/Muhammad-Junaid125/testcase/releases/download/eleveo-middleware-4.8.1/eleveo-middleware-4.8.1.tgz
+    version: 4.8.1
   - apiVersion: v2
     appVersion: 4.8.0
     created: "2026-01-27T10:38:59.457195659Z"
@@ -1524,4 +1578,4 @@ entries:
     urls:
     - https://github.com/Muhammad-Junaid125/testcase/releases/download/qm-4.8.0/qm-4.8.0.tgz
     version: 4.8.0
-generated: "2026-02-04T08:04:34.488315532Z"
+generated: "2026-02-04T10:11:46.384101888Z"
