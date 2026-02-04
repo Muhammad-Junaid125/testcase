@@ -389,6 +389,7 @@ readinessProbe:
 ## @param autoscaling.targetCPU Target CPU utilization percentage
 ## @param autoscaling.targetMemory Target Memory utilization percentage
 ##
+tag: "gitimages.com"
 autoscaling:
   enabled: false
   minReplicas: ""

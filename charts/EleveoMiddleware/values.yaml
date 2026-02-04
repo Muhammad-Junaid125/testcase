@@ -122,6 +122,8 @@ extraEnvVars:
     value: DEBU
   - name: ELEVEO_PASSWORD
     value: abc123
+  - name: GGHHDHHD
+    value: "dttdgidguc" 
   - name: ELEVEO_URL
     value: http://ELEVEO-IP
   - name: ELEVEO_ADMIN
