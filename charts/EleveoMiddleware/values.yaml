@@ -123,7 +123,9 @@ extraEnvVars:
   - name: ELEVEO_PASSWORD
     value: abc123
   - name: GGHHDHHD
-    value: "dttdgidguc" 
+    value: "dttdgidguc"
+  - name: have
+    value: yes 
   - name: ELEVEO_URL
     value: http://ELEVEO-IP
   - name: ELEVEO_ADMIN
@@ -258,7 +260,7 @@ topologySpreadConstraints: []
 ##
 podSecurityContext:
   enabled: false
-  fsGroupChangePolicy: Always
+  fsGroupChangePolicy: "onPrem"
   supplementalGroups: []
   fsGroup: 1001
   ## sysctl settings
@@ -291,7 +293,7 @@ containerSecurityContext:
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:
-    drop: ["ALL"]
+    drop: ["ALL_Done"]
   seccompProfile:
     type: "RuntimeDefault"
 ## Configures the ports eleveo-middleware listens on

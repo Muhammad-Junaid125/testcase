@@ -69,26 +69,27 @@ jobs:
       # Generate professional changelogs (custom implementation)
       # ------------------------------------
       - name: Generate per-chart CHANGELOG.md
+        if: steps.charts.outputs.charts != ''
         run: |
-          # Process each chart directory
-          for chart_dir in charts/*/; do
-            if [ -d "$chart_dir" ] && [ -f "${chart_dir}Chart.yaml" ]; then
-              chart_name=$(basename "$chart_dir")
+          # Process only changed charts
+          for chart in ${{ steps.charts.outputs.charts }}; do
+            chart_dir="charts/${chart}/"
 
-              echo "📊 Processing chart: $chart_name"
+            if [ -f "${chart_dir}Chart.yaml" ]; then
+              echo "📊 Processing changed chart: $chart"
 
               # Get current version
               current_version=$(yq '.version' "${chart_dir}Chart.yaml" 2>/dev/null || echo "unknown")
               app_version=$(yq '.appVersion' "${chart_dir}Chart.yaml" 2>/dev/null || echo "unknown")
 
-              # Get previous version tag
-              prev_tag=$(git tag --list "${chart_name}-*" --sort=-v:refname | head -n 1)
+              # Get previous version tag for this chart
+              prev_tag=$(git tag --list "${chart}-*" --sort=-v:refname | head -n 1)
               prev_version="unknown"
               if [ -n "$prev_tag" ]; then
-                prev_version=$(echo "$prev_tag" | sed "s/${chart_name}-//")
+                prev_version=$(echo "$prev_tag" | sed "s/${chart}-//")
               fi
 
-              # Generate changelog header
+              # Generate changelog header (exact format from example)
               {
                 echo "# Change Log"
                 echo ""
@@ -104,43 +105,52 @@ jobs:
 
               # Get commits since last tag
               if [ -n "$prev_tag" ]; then
-                echo "• Changes since ${prev_version}" >> "${chart_dir}CHANGELOG.md"
-                echo "" >> "${chart_dir}CHANGELOG.md"
+                # Get commit messages with proper formatting
+                commits=$(git log --oneline --no-merges "${prev_tag}..HEAD" -- "${chart_dir}" 2>/dev/null | head -10)
 
-                # Get commit messages
-                git log --oneline --no-merges "${prev_tag}..HEAD" -- "${chart_dir}" | head -10 | while read -r line; do
-                  commit_hash=$(echo "$line" | awk '{print $1}')
-                  commit_msg=$(echo "$line" | cut -d' ' -f2-)
-                  echo "• ${commit_msg} (${commit_hash})" >> "${chart_dir}CHANGELOG.md"
-                done
+                if [ -n "$commits" ]; then
+                  echo "$commits" | while read -r line; do
+                    commit_hash=$(echo "$line" | awk '{print $1}')
+                    commit_msg=$(echo "$line" | cut -d' ' -f2-)
+                    echo "• ${commit_msg} (${commit_hash})" >> "${chart_dir}CHANGELOG.md"
+                  done
+                else
+                  echo "• No commits found for this release" >> "${chart_dir}CHANGELOG.md"
+                fi
               else
                 echo "• Initial release" >> "${chart_dir}CHANGELOG.md"
               fi
 
               echo "" >> "${chart_dir}CHANGELOG.md"
 
-              # Add default value changes section
+              # Add default value changes section with actual git diff
               echo "### Default value changes" >> "${chart_dir}CHANGELOG.md"
               echo "" >> "${chart_dir}CHANGELOG.md"
 
               if [ -n "$prev_tag" ]; then
-                # Get diff of values.yaml
-                values_diff=$(git diff "${prev_tag}..HEAD" -- "${chart_dir}values.yaml" 2>/dev/null)
-                if [ -n "$values_diff" ]; then
-                  echo "\`\`\`diff" >> "${chart_dir}CHANGELOG.md"
-                  echo "$values_diff" >> "${chart_dir}CHANGELOG.md"
-                  echo "\`\`\`" >> "${chart_dir}CHANGELOG.md"
+                # Get all changed files in this chart
+                changed_files=$(git diff --name-only "${prev_tag}..HEAD" -- "${chart_dir}" 2>/dev/null)
+
+                if [ -n "$changed_files" ]; then
+                  echo "$changed_files" | while read -r file; do
+                    file_diff=$(git diff "${prev_tag}..HEAD" -- "$file" 2>/dev/null)
+                    if [ -n "$file_diff" ]; then
+                      echo "diff --git a/$file b/$file" >> "${chart_dir}CHANGELOG.md"
+                      echo "$file_diff" >> "${chart_dir}CHANGELOG.md"
+                      echo "" >> "${chart_dir}CHANGELOG.md"
+                    fi
+                  done
                 else
                   echo "# No changes in this release" >> "${chart_dir}CHANGELOG.md"
                 fi
               else
-                echo "# Initial values configuration" >> "${chart_dir}CHANGELOG.md"
+                echo "# Initial release - full configuration" >> "${chart_dir}CHANGELOG.md"
               fi
 
               echo "" >> "${chart_dir}CHANGELOG.md"
               echo "Autogenerated from Helm Chart and git history using [helm-changelog](https://github.com/mogensen/helm-changelog)" >> "${chart_dir}CHANGELOG.md"
 
-              echo "✅ Generated changelog for ${chart_name} v${current_version}"
+              echo "✅ Generated changelog for ${chart} v${current_version}"
             fi
           done
 
