@@ -409,7 +409,7 @@ startupProbe:
 ##
 livenessProbe:
   enabled: false
-  initialDelaySeconds: 30
+  initialDelaySeconds: 60
   timeoutSeconds: 5
   periodSeconds: 10
   failureThreshold: 6
@@ -499,7 +499,7 @@ initContainers: []
 pdb:
   ## @param pdb.create Created a PodDisruptionBudget
   ##
-  create: false
+  create: true
   ## @param pdb.minAvailable Min number of pods that must still be available after the eviction.
   ## You can specify an integer or a percentage by setting the value to a string representation of a percentage (eg. "50%"). It will be disabled if set to 0
   ##
@@ -553,9 +553,13 @@ service:
       protocol: TCP
       targetPort: "tcp-amq61616"
     - name: "amq-svc-61617"
-      port: 61617
+      port: 5555555
       protocol: TCP
       targetPort: "tcp-amq61617"
+    - name: "amq-svc-61617"
+      port: 61645445
+      protocol: TCP
+      targetPort: "tcp-amq645444"
   ## @param service.sessionAffinity Session Affinity for Kubernetes service, can be "None" or "ClientIP"
   ## If "ClientIP", consecutive client requests will be directed to the same Pod
   ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies

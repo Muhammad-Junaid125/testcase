@@ -219,7 +219,7 @@ smpp-connector:
       port: 8115
       portName: "http-sm-cn-8115"
       targetPort: "http-sm-cn-8115"
-   ingress: {enabled: false} # <-- Explicitly disable standard Ingress
+   ingress: {enabled: true} # <-- Explicitly disable standard Ingress
    extraVolumes:
       - name: ef-logback
         configMap:
@@ -239,7 +239,7 @@ telegram-connector:
    efEnvironmentVars: false
    containerPorts:
       - name: "http-te-co-8664"
-        containerPort: 8664
+        containerPort: 77777
    extraEnvVars:
       - name: TZ
         value: '{{ .Values.global.efCommonVars_TZ }}'
@@ -290,8 +290,8 @@ twilio-connector:
         value: "http://{{ .Values.global.efCxReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
       - name: FILE_ENGINE_URL
         value: "http://{{ .Values.global.efCxReleaseName }}-file-engine-svc.{{ .Release.Namespace }}.svc:8080"
-      - name: MASKING_LAYOUT_CLASS
-        value: "com.ef.twilio.connector.util.MaskingPatternLayout"
+      - name: BBBBSSSSSS
+        value: "ALjazeera"
    siteEnvVars: []
    service:
       enabled: true
@@ -390,10 +390,6 @@ email-connector:
        value: '{{ .Values.global.efCommonVars_TZ }}'
      - name: CCM_URL
        value: "http://{{ .ValuesReleaseName }}-ccm-svc.{{ .Release.Namespace }}.svc:8081"
-     - name: FILE_ENGINE_URL
-       value: "http://{{ .Values.global.efCxReleaseName }}-file-Namespace }}.svc:8080"
-     - name: SCHEDULER_FIXED_RATE_IN_MS
-       value: "60000"
    siteEnvVars: []
    service:
      enabled: true
